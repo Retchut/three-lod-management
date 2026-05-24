@@ -1,3 +1,6 @@
+# 3d asset location (I want to serve it from a server later down the line, so I don't clutter the repo)
+public/models/
+
 # Logs
 logs
 *.log

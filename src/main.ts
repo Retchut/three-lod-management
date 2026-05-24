@@ -1,38 +1,54 @@
 import "./style.css";
-import * as T from "three";
-import { WebGPURenderer } from "three/webgpu";
-import { GLTFLoader, OrbitControls } from "three/examples/jsm/Addons.js";
+import Stats from "stats.js";
+import { PerspectiveCamera, WebGPURenderer } from "three/webgpu";
+import { OrbitControls } from "three/examples/jsm/Addons.js";
+import { SimpleScene } from "./scenes/Simple";
+import type { AppContext } from "./scenes/BaseScene";
+import { RandomizedScene } from "./scenes/Randomized";
 
-function renderloop(time: number) {
-	renderer.render(scene, camera);
-	console.log(camera.position);
-}
+// performance monitoring
+// TODO: test mem stats panel on chromium - run w/ `--enable-precise-memory-info`
+const statObjs = [new Stats(), new Stats(), new Stats()];
+statObjs.forEach((stats: Stats, i: number) => {
+	stats.showPanel(i);
+	// by default these panels seem to be 80px wide, absolutely positioned in the top left corner
+	const panelLeft: string = i * 80 + "px";
+	stats.dom.style.left = panelLeft;
+	document.body.appendChild(stats.dom);
+});
 
-const scene: T.Scene = new T.Scene();
 const renderer: WebGPURenderer = new WebGPURenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setAnimationLoop(renderloop);
 document.body.appendChild(renderer.domElement);
 
-const camera: T.PerspectiveCamera = new T.PerspectiveCamera(
+const camera: PerspectiveCamera = new PerspectiveCamera(
 	75,
 	window.innerWidth / window.innerHeight,
 	0.1,
 	1000,
 );
-camera.position.set(4, 3, 4);
 
 const controls: OrbitControls = new OrbitControls(camera, renderer.domElement);
-controls.target.set(0, 0, 0);
-controls.update();
 
-const axes: T.AxesHelper = new T.AxesHelper(5);
-scene.add(axes);
+const ctx: AppContext = {
+	renderer: renderer,
+	camera: camera,
+	camControls: controls,
+};
 
-const loader: GLTFLoader = new GLTFLoader();
+// let currentScene = new SimpleScene();
+let currentScene = new RandomizedScene();
+await currentScene.load(ctx);
 
-// quick setup test
-const geometry = new T.BoxGeometry(1, 1, 1);
-const material = new T.MeshBasicMaterial({ color: 0xff6b9a });
-const cube = new T.Mesh(geometry, material);
-scene.add(cube);
+let lastRenderTime: number = 0;
+function renderloop(time: number) {
+	const deltaTime = (time - lastRenderTime) / 1000;
+	lastRenderTime = time;
+	statObjs.forEach((stats: Stats) => stats.begin());
+	if (currentScene.isLoaded()) {
+		currentScene.update(deltaTime, ctx);
+		renderer.render(currentScene.getScene(), camera);
+	}
+	statObjs.forEach((stats: Stats) => stats.end());
+}
+renderer.setAnimationLoop(renderloop);
