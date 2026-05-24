@@ -20,10 +20,11 @@ export class AssetSpawner {
 		);
 	}
 
-	private spawnObject(template: Object3D, parent: Group, position: Vector3): void {
+	private spawnObject(template: Object3D, parent: Group, position: Vector3): Object3D {
 		const instance: Object3D = template.clone(true);
 		instance.position.copy(position);
 		parent.add(instance);
+		return instance;
 	}
 
 	private fetchTemplate(cachedData: LoadedGLTF, variantID: number): Object3D | null {
@@ -46,16 +47,16 @@ export class AssetSpawner {
 		count: number,
 		maxSpread: number,
 		variantID: number = -1,
-	) {
+	): Object3D[] {
 		const cachedData: LoadedGLTF | null = this._manager.getAsset(assetID);
-		if (cachedData == null) return;
+		if (cachedData == null) return [];
 		const { variants }: LoadedGLTF = cachedData;
 
 		if (variantID < -1) {
 			console.error(
 				`[AssetSpawner] Invalid variantID provided: ${variantID}. Accepted values are integers >= -1.`,
 			);
-			return;
+			return [];
 		}
 
 		// has variants + invalid variant requested (-1 means random, not a variantID)
@@ -63,7 +64,7 @@ export class AssetSpawner {
 			console.error(
 				`[AssetSpawner spawnRandom()] Attempted to spawn variant ${variantID} of asset ${assetID}, but the asset only contains ${variants.length} variants`,
 			);
-			return;
+			return [];
 		}
 
 		// no variants
@@ -73,6 +74,7 @@ export class AssetSpawner {
 					(variantID !== -1 ? `. The provided variantID ('${variantID}') will be ignored}.` : ""),
 			);
 
+		let spawnedObjects: Object3D[] = [];
 		for (let i = 0; i < count; i++) {
 			const template = this.fetchTemplate(cachedData, variantID);
 			if (template === null) {
@@ -81,7 +83,9 @@ export class AssetSpawner {
 				);
 				continue;
 			}
-			this.spawnObject(template, parent, this.getRandomPos(maxSpread));
+			const instance = this.spawnObject(template, parent, this.getRandomPos(maxSpread));
+			spawnedObjects.push(instance);
 		}
+		return spawnedObjects;
 	}
 }
