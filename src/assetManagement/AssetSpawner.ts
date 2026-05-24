@@ -1,15 +1,15 @@
 import { Vector3, type Group, type Object3D } from "three/webgpu";
-import type { LoadedGLTF } from "./AssetManager";
+import type { AssetManager, LoadedGLTF } from "./AssetManager";
 
 export class AssetSpawner {
-	private _assetCache: Map<string, LoadedGLTF>;
+	private _manager: AssetManager;
 
-	constructor(assetCache: Map<string, LoadedGLTF>) {
-		this._assetCache = assetCache;
+	constructor(assetCache: AssetManager) {
+		this._manager = assetCache;
 	}
 
 	private retrieveFromCache(assetID: string): LoadedGLTF | null {
-		const cachedData = this._assetCache.get(assetID);
+		const cachedData = this._manager.getCache().get(assetID);
 		if (cachedData == undefined) {
 			console.error(
 				`[AssetSpawner] Cache miss for asset with id ${assetID}. Did you forget to load it first?`,

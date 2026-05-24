@@ -33,7 +33,7 @@ const camera: PerspectiveCamera = new PerspectiveCamera(
 const controls: OrbitControls = new OrbitControls(camera, renderer.domElement);
 
 const assetManager: AssetManager = new AssetManager();
-const assetSpawner: AssetSpawner = new AssetSpawner(assetManager.getCache());
+const assetSpawner: AssetSpawner = new AssetSpawner(assetManager);
 await assetManager.loadGLTF("tree", "realistic_tree/scene.gltf", ["Tree_0", "Tree001_1"]);
 
 const ctx: AppContext = {
