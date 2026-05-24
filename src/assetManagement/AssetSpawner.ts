@@ -8,17 +8,6 @@ export class AssetSpawner {
 		this._manager = assetCache;
 	}
 
-	private retrieveFromCache(assetID: string): LoadedGLTF | null {
-		const cachedData = this._manager.getCache().get(assetID);
-		if (cachedData == undefined) {
-			console.error(
-				`[AssetSpawner] Cache miss for asset with id ${assetID}. Did you forget to load it first?`,
-			);
-			return null;
-		}
-		return cachedData;
-	}
-
 	private getRandomVal(maxSpread: number): number {
 		return (Math.random() - 0.5) * maxSpread;
 	}
@@ -58,7 +47,7 @@ export class AssetSpawner {
 		maxSpread: number,
 		variantID: number = -1,
 	) {
-		const cachedData: LoadedGLTF | null = this.retrieveFromCache(assetID);
+		const cachedData: LoadedGLTF | null = this._manager.getAsset(assetID);
 		if (cachedData == null) return;
 		const { variants }: LoadedGLTF = cachedData;
 

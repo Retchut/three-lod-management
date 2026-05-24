@@ -18,8 +18,15 @@ export class AssetManager {
 	}
 
 	// ----- getters -----
-	public getCache(): Map<string, LoadedGLTF> {
-		return this._assetCache;
+	public getAsset(assetID: string): LoadedGLTF | null {
+		const cachedData = this._assetCache.get(assetID);
+		if (cachedData == undefined) {
+			console.error(
+				`[AssetSpawner] Cache miss for asset with id ${assetID}. Did you forget to load it first?`,
+			);
+			return null;
+		}
+		return cachedData;
 	}
 	// --------------------
 
