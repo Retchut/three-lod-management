@@ -23,18 +23,22 @@ export class AssetManager {
 	}
 	// --------------------
 
-	public async loadGLTF(modelKey: string, modelPath: string, variantIDs: string[]) {
+	public async loadGLTF(modelKey: string, modelPath: string, variantNames: string[]) {
 		const gltf: GLTF = await this._gltfLoader.loadAsync(`${BASE_MODEL_URL}${modelPath}`);
 		const modelCache: LoadedGLTF = {
 			data: gltf,
 			variants: [],
 		};
 
-		// gltf no variants passed, meaning the scene is the full 3d model
-		if (variantIDs.length != 0) {
-			variantIDs.forEach((id: string) => {
+		// if variants are provided, load them
+		if (variantNames.length != 0) {
+			variantNames.forEach((id: string) => {
 				const variant = gltf.scene.getObjectByName(id);
 				if (variant) modelCache.variants.push(variant);
+				else
+					console.warn(
+						`[AssetManager] Unable to find load variant '${variantNames}' from the model file '${modelPath}'. This may cause issues when spawning models later down the line.`,
+					);
 			});
 		}
 		this._assetCache.set(modelKey, modelCache);
