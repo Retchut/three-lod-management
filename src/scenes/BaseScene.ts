@@ -7,7 +7,7 @@ import {
 	Vector3,
 	WebGPURenderer,
 } from "three/webgpu";
-import type { OrbitControls } from "three/examples/jsm/Addons.js";
+import { OrbitControls } from "three/examples/jsm/Addons.js";
 import type { AssetManager } from "../assetManagement/AssetManager";
 import type { AssetSpawner } from "../assetManagement/AssetSpawner";
 

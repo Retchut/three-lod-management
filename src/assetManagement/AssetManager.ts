@@ -1,4 +1,4 @@
-import type { Object3D } from "three/webgpu";
+import { Object3D } from "three/webgpu";
 import { GLTFLoader, type GLTF } from "three/examples/jsm/Addons.js";
 
 const BASE_MODEL_URL = "models/";
