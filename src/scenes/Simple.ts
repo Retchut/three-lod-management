@@ -23,7 +23,7 @@ export class SimpleScene extends BaseScene {
 		this.scene.add(dirLight);
 	}
 
-	protected async setupGeometry(): Promise<void> {
+	protected async setupGeometry(context: AppContext): Promise<void> {
 		const geometry = new BoxGeometry(1, 1, 1);
 		const material = new MeshBasicMaterial({ color: 0xff6b9a });
 		const cube = new Mesh(geometry, material);

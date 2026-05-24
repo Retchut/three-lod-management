@@ -5,6 +5,8 @@ import { OrbitControls } from "three/examples/jsm/Addons.js";
 import { SimpleScene } from "./scenes/Simple";
 import type { AppContext } from "./scenes/BaseScene";
 import { RandomizedScene } from "./scenes/Randomized";
+import { AssetManager } from "./assetManagement/AssetManager";
+import { AssetSpawner } from "./assetManagement/AssetSpawner";
 
 // performance monitoring
 // TODO: test mem stats panel on chromium - run w/ `--enable-precise-memory-info`
@@ -30,12 +32,17 @@ const camera: PerspectiveCamera = new PerspectiveCamera(
 
 const controls: OrbitControls = new OrbitControls(camera, renderer.domElement);
 
+const assetManager: AssetManager = new AssetManager();
+const assetSpawner: AssetSpawner = new AssetSpawner(assetManager.getCache());
+await assetManager.loadGLTF("tree", "realistic_tree/scene.gltf", ["Tree_0", "Tree001_1"]);
+
 const ctx: AppContext = {
 	renderer: renderer,
 	camera: camera,
 	camControls: controls,
+	assetManager: assetManager,
+	assetSpawner: assetSpawner,
 };
-
 // let currentScene = new SimpleScene();
 let currentScene = new RandomizedScene();
 await currentScene.load(ctx);

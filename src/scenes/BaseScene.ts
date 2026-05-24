@@ -8,11 +8,15 @@ import {
 	WebGPURenderer,
 } from "three/webgpu";
 import type { OrbitControls } from "three/examples/jsm/Addons.js";
+import type { AssetManager } from "../assetManagement/AssetManager";
+import type { AssetSpawner } from "../assetManagement/AssetSpawner";
 
 export type AppContext = {
 	renderer: WebGPURenderer;
 	camera: Camera;
 	camControls: OrbitControls; // TODO: replace with basecontrols and check in scenes which ones are active
+	assetManager: AssetManager;
+	assetSpawner: AssetSpawner;
 };
 
 export abstract class BaseScene {
@@ -52,7 +56,7 @@ export abstract class BaseScene {
 	// ----- initialization -----
 	// - abstract methods -
 	protected abstract setupLighting(): void;
-	protected abstract setupGeometry(): Promise<void>;
+	protected abstract setupGeometry(context: AppContext): Promise<void>;
 	// --------------------
 
 	private setupSceneHelpers(): void {
@@ -76,7 +80,7 @@ export abstract class BaseScene {
 
 		this.updateCamera(context, this._initCamPos);
 		this.setupLighting();
-		await this.setupGeometry();
+		await this.setupGeometry(context);
 
 		this._loaded = true;
 	}

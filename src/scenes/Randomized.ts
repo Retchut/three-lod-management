@@ -1,36 +1,5 @@
-import { AmbientLight, Color, DirectionalLight, Group, Object3D, Vector3 } from "three/webgpu";
+import { AmbientLight, Color, DirectionalLight, Vector3 } from "three/webgpu";
 import { BaseScene, type AppContext } from "./BaseScene";
-import { GLTFLoader, type GLTF } from "three/examples/jsm/Addons.js";
-
-// ------------------------------------------------------------------
-// TODO: extract into AssetManager module
-async function loadModels() {
-	const loader: GLTFLoader = new GLTFLoader();
-	const gltf: GLTF = await loader.loadAsync("models/realistic_tree/scene.gltf");
-	const treeVariants = [];
-	const tree0 = gltf.scene.getObjectByName("Tree_0");
-	const tree1 = gltf.scene.getObjectByName("Tree001_1");
-	if (tree0) treeVariants.push(tree0);
-	if (tree1) treeVariants.push(tree1);
-
-	return treeVariants;
-}
-
-function placeRandom(parent: Group, count: number, variants: Object3D[]) {
-	if (variants.length == 0) {
-		console.error(
-			"Attempting to place random objects, but received an empty variants vector. Aborting...",
-		);
-		return;
-	}
-	for (let i = 0; i < count; i++) {
-		const randIdx: number = Math.floor(Math.random() * variants.length);
-		const instance: Object3D = variants[randIdx].clone(true);
-		instance.position.set((Math.random() - 0.5) * 50, 0, (Math.random() - 0.5) * 50);
-		parent.add(instance);
-	}
-}
-// ------------------------------------------------------------------
 
 export class RandomizedScene extends BaseScene {
 	constructor() {
@@ -46,9 +15,8 @@ export class RandomizedScene extends BaseScene {
 		this.scene.add(dirLight);
 	}
 
-	protected async setupGeometry(): Promise<void> {
-		const variants: Object3D[] = await loadModels();
-		placeRandom(this.root, 10, variants);
+	protected async setupGeometry(context: AppContext): Promise<void> {
+		context.assetSpawner.spawnRandom(this.root, "tree", 10, 50, -1);
 	}
 
 	public update(deltaTime: number, context: AppContext): void {
