@@ -79,9 +79,7 @@ export class AssetSpawner {
 		if (cachedData.variants.length === 0)
 			console.warn(
 				`[AssetSpawner] The provided asset with id '${assetID}' does not contain variants. The entire GLTF scene will be spawned instead.` +
-					(variantID !== -1)
-					? `. The provided variantID ('${variantID}') will be ignored}.`
-					: "",
+					(variantID !== -1 ? `. The provided variantID ('${variantID}') will be ignored}.` : ""),
 			);
 
 		for (let i = 0; i < count; i++) {
