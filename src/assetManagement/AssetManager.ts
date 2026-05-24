@@ -23,6 +23,7 @@ export class AssetManager {
 	}
 	// --------------------
 
+	// TODO: it's probably worth making this method return the LoadedGLTF object, if nothing else, just for testing purposes
 	public async loadGLTF(modelKey: string, modelPath: string, variantNames: string[]) {
 		const gltf: GLTF = await this._gltfLoader.loadAsync(`${BASE_MODEL_URL}${modelPath}`);
 		const modelCache: LoadedGLTF = {

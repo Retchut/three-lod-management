@@ -49,6 +49,8 @@ export class AssetSpawner {
 		return null;
 	}
 
+	// TODO: I'll have to rethink the whole logic of using the length of the variants as a way to decide on spawning the gltf scene.
+	//			A good alternative might be to always load the scene into variants[0], or another key in the LoadedGLTF object
 	public spawnRandom(
 		parent: Group,
 		assetID: string,
