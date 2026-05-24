@@ -17,6 +17,12 @@ async function loadModels() {
 }
 
 function placeRandom(parent: Group, count: number, variants: Object3D[]) {
+	if (variants.length == 0) {
+		console.error(
+			"Attempting to place random objects, but received an empty variants vector. Aborting...",
+		);
+		return;
+	}
 	for (let i = 0; i < count; i++) {
 		const randIdx: number = Math.floor(Math.random() * variants.length);
 		const instance: Object3D = variants[randIdx].clone(true);
