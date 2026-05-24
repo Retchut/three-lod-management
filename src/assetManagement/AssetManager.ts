@@ -45,7 +45,7 @@ export class AssetManager {
 				if (variant) modelCache.variants.push(variant);
 				else
 					console.warn(
-						`[AssetManager] Unable to find load variant '${variantNames}' from the model file '${modelPath}'. This may cause issues when spawning models later down the line.`,
+						`[AssetManager] Unable to find variant '${id}' from the model file '${modelPath}'. This may cause issues when spawning models later down the line.`,
 					);
 			});
 		}
