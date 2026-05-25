@@ -59,3 +59,5 @@ function renderloop(time: number) {
 	statObjs.forEach((stats: Stats) => stats.end());
 }
 renderer.setAnimationLoop(renderloop);
+
+// setTimeout(() => currentScene.dispose(), 2000); // we do a little dispose testing

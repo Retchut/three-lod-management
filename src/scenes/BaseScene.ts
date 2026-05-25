@@ -3,7 +3,12 @@ import {
 	Camera,
 	GridHelper,
 	Group,
+	Light,
+	Material,
+	Mesh,
+	Object3D,
 	Scene,
+	Texture,
 	Vector3,
 	WebGPURenderer,
 } from "three/webgpu";
@@ -34,6 +39,7 @@ export abstract class BaseScene {
 		this._initCamPos = initCamPos.clone();
 		this._debug = debug;
 		this.scene = new Scene();
+		this.scene.name = sceneName;
 		this.root = new Group();
 		this.root.name = `${this.name}:root`;
 		this.debugRoot = new Group();
@@ -91,8 +97,38 @@ export abstract class BaseScene {
 	// -------------------
 
 	// ----- cleanup -----
+	// TODO: I'll have to review this, as I don't really want to dispose of geometry that is owned by the asset manager, since my
+	//			original idea was to have those assets be usable in other scenes
 	public dispose(): void {
-		console.warn("dispose() not implemented"); // TODO
+		// TODO: this feels weird, as I'm pretty sure the debug helpers, at the very least, are not instances of the Mesh class,
+		//			so I think I'm missing some cleanup there at least
+		[this.root, this.debugRoot].forEach((rootObj: Object3D) => {
+			rootObj.traverse((obj: Object3D) => {
+				if (!(obj instanceof Mesh)) return;
+				const mesh = obj as Mesh;
+				mesh.geometry.dispose();
+				const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+				mats.forEach((mat: Material) => {
+					for (const value of Object.values(mat)) {
+						if (value && typeof value === "object" && "isTexture" in value) {
+							(value as Texture).dispose();
+						}
+					}
+					mat.dispose();
+				});
+			});
+			rootObj.clear();
+		});
+
+		// I should only have lights left
+		this.scene.traverse((obj: Object3D) => {
+			if (!(obj instanceof Light)) return;
+			(obj as Light).dispose();
+		});
+		this.scene.background = null;
+		this.scene.environment = null;
+		this.scene.clear();
+		// this._loaded = false; // I obviously cannot just turn this off or else the scene won't render. I'll have to rethink this
 	}
 	// -------------------
 }

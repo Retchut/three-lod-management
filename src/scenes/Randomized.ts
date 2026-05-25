@@ -9,7 +9,9 @@ export class RandomizedScene extends BaseScene {
 	protected setupLighting(): void {
 		this.scene.background = new Color(0xc6cfce);
 		const ambient = new AmbientLight(0xffffff, 1);
+		ambient.name = "light:ambient0";
 		const dirLight = new DirectionalLight(0xffffff, 2);
+		dirLight.name = "light:directional0";
 		dirLight.position.set(5, 10, 5);
 		this.scene.add(ambient);
 		this.scene.add(dirLight);
