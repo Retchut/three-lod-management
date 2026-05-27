@@ -14,7 +14,7 @@
     - [ ] spawning entities
     - [ ] selecting from loaded entities + specifying number
 - [ ] lod implementation
-  - [ ] generate LODs (not on code)
+  - [x] generate LODs (not on code)
   - [ ] load lods into cache
   - [ ] swap between lods based on distance
 - [ ] lod optimization

@@ -1,3 +1,26 @@
 ## Assets used
 
 "More Realistic Trees Free!" (https://skfb.ly/owLwy) by Nicholas-3D is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/).
+LODs generated with the stock blender decimate modifier at different ratios per level.
+Texture resolution was reduced by a factor of 2 in each level with imagemagick.
+
+1. LOD 0:
+   - Tree 1 - 1.0 (781716 verts, 825653 faces)
+   - Tree 2 - 1.0 (514145 verts, 550533 faces)
+   - Tree Trunk normal/roughness/diffuse maps - 1414x1414
+   - Tree leaf opacity/normal maps - 2048x2048
+1. LOD 1:
+   - Tree 1 - 0.50 (552696 verts, 412826 faces)
+   - Tree 2 - 0.60 (395405 verts, 330319 faces)
+   - Tree Trunk normal/roughness/diffuse maps - 707x707
+   - Tree leaf opacity/normal maps - 1024x1024
+1. LOD 2:
+   - Tree 1 - 0.25 (352863 verts, 206413 faces)
+   - Tree 2 - 0.30 (237530 verts, 165159 faces)
+   - Tree Trunk normal/roughness/diffuse maps - 354x354
+   - Tree leaf opacity/normal maps - 512x512
+1. LOD 3:
+   - Tree 1 - 0.12 (246789 verts, 99078 faces)
+   - Tree 2 - 0.17 (171604 verts, 93590 faces)
+   - Tree Trunk normal/roughness/diffuse maps - 177x177
+   - Tree leaf opacity/normal maps - 256x256
