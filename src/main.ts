@@ -43,8 +43,8 @@ const ctx: AppContext = {
 	assetManager: assetManager,
 	assetSpawner: assetSpawner,
 };
-// let currentScene = new SimpleScene();
-let currentScene = new RandomizedScene();
+let currentScene = new SimpleScene();
+// let currentScene = new RandomizedScene();
 await currentScene.load(ctx);
 
 let lastRenderTime: number = 0;

@@ -29,7 +29,9 @@ export class SimpleScene extends BaseScene {
 		const geometry = new BoxGeometry(1, 1, 1);
 		const material = new MeshBasicMaterial({ color: 0xff6b9a });
 		const cube = new Mesh(geometry, material);
+		cube.position.set(5, 0, 5);
 		this.root.add(cube);
+		context.assetSpawner.spawnRandom(this.root, "tree", 1, 1, 0);
 	}
 
 	public update(deltaTime: number, context: AppContext): void {
