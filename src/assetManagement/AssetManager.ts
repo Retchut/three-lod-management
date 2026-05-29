@@ -22,7 +22,7 @@ export class AssetManager {
 		const cachedData = this._assetCache.get(assetID);
 		if (cachedData == undefined) {
 			console.error(
-				`[AssetSpawner] Cache miss for asset with id ${assetID}. Did you forget to load it first?`,
+				`[AssetManager] Cache miss for asset with id ${assetID}. Did you forget to load it first?`,
 			);
 			return null;
 		}
@@ -38,17 +38,26 @@ export class AssetManager {
 			variants: [],
 		};
 
-		// if variants are provided, load them
-		if (variantNames.length != 0) {
-			variantNames.forEach((id: string) => {
-				const variant = gltf.scene.getObjectByName(id);
-				if (variant) modelCache.variants.push(variant);
-				else
-					console.warn(
-						`[AssetManager] Unable to find variant '${id}' from the model file '${modelPath}'. This may cause issues when spawning models later down the line.`,
-					);
-			});
+		// load entire scene as a variant
+		if (variantNames.length === 0) {
+			modelCache.variants.push(gltf.scene);
+			this._assetCache.set(modelKey, modelCache);
+			return;
 		}
+
+		// load variants
+		variantNames.forEach((id: string) => {
+			const variant = gltf.scene.getObjectByName(id);
+			if (variant) modelCache.variants.push(variant);
+			else
+				console.warn(
+					`[AssetManager] Unable to find variant '${id}' from the model file '${modelPath}'. This may cause issues when spawning models later down the line.`,
+				);
+		});
+		if (modelCache.variants.length === 0)
+			console.warn(
+				`[AssetManager] Variant names were provided, but no variants were able to be loaded for model ${modelKey}.`,
+			);
 		this._assetCache.set(modelKey, modelCache);
 	}
 }

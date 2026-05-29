@@ -28,10 +28,9 @@ export class AssetSpawner {
 	}
 
 	private fetchTemplate(cachedData: LoadedGLTF, variantID: number): Object3D | null {
-		const { data, variants }: LoadedGLTF = cachedData;
-		// variants length === 0 -> no variants, load scene
-		//              ignore variantID
-		if (variants.length === 0) return data.scene;
+		const { variants }: LoadedGLTF = cachedData;
+		// variants length === 0 -> shouldn't happen. If no variants were provided when loading, we set the scene as a variant at least
+		if (variants.length === 0) return null;
 		// variantID === -1 -> randomize variant
 		if (variantID === -1) return variants[Math.floor(Math.random() * variants.length)];
 		// has variants + defined variantID
@@ -39,8 +38,6 @@ export class AssetSpawner {
 		return null;
 	}
 
-	// TODO: I'll have to rethink the whole logic of using the length of the variants as a way to decide on spawning the gltf scene.
-	//			A good alternative might be to always load the scene into variants[0], or another key in the LoadedGLTF object
 	public spawnRandom(
 		parent: Group,
 		assetID: string,
@@ -52,27 +49,18 @@ export class AssetSpawner {
 		if (cachedData == null) return [];
 		const { variants }: LoadedGLTF = cachedData;
 
-		if (variantID < -1) {
-			console.error(
-				`[AssetSpawner] Invalid variantID provided: ${variantID}. Accepted values are integers >= -1.`,
-			);
+		if (variants.length === 0) {
+			console.error(`[AssetSpawner] No variants exist for asset ${assetID}.`);
 			return [];
 		}
 
-		// has variants + invalid variant requested (-1 means random, not a variantID)
-		if (variants.length > 0 && variantID >= variants.length) {
+		// -1 means random, not a variantID
+		if (variantID < -1 || variantID >= variants.length) {
 			console.error(
-				`[AssetSpawner spawnRandom()] Attempted to spawn variant ${variantID} of asset ${assetID}, but the asset only contains ${variants.length} variants`,
+				`[AssetSpawner] Invalid variantID provided: ${variantID}. Accepted values are -1 or integers between 0 and variants.length-1 (${variants.length - 1}).`,
 			);
 			return [];
 		}
-
-		// no variants
-		if (cachedData.variants.length === 0)
-			console.warn(
-				`[AssetSpawner] The provided asset with id '${assetID}' does not contain variants. The entire GLTF scene will be spawned instead.` +
-					(variantID !== -1 ? `. The provided variantID ('${variantID}') will be ignored}.` : ""),
-			);
 
 		let spawnedObjects: Object3D[] = [];
 		for (let i = 0; i < count; i++) {
