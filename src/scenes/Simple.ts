@@ -5,6 +5,7 @@ import {
 	DirectionalLight,
 	Mesh,
 	MeshBasicMaterial,
+	Object3D,
 	Vector3,
 } from "three/webgpu";
 import { BaseScene, type AppContext } from "./BaseScene";
@@ -31,7 +32,19 @@ export class SimpleScene extends BaseScene {
 		const cube = new Mesh(geometry, material);
 		cube.position.set(5, 0, 5);
 		this.root.add(cube);
-		context.assetSpawner.spawnRandom(this.root, "tree", 1, 1, 0);
+
+		const lodVariants = context.assetManager.getAsset("tree")?.variants;
+
+		// just to check out the lods
+		if (lodVariants) {
+			for (let i = 0; i < lodVariants.length; i++) {
+				const v = lodVariants[i];
+				for (let j = 0; j < v.length; j++) {
+					const lod = v[j];
+					context.assetSpawner.spawnObject(lod, this.root, new Vector3(-1 + 2 * i, 0, -6 + 4 * j));
+				}
+			}
+		}
 	}
 
 	public update(deltaTime: number, context: AppContext): void {

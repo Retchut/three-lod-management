@@ -20,13 +20,6 @@ export class AssetSpawner {
 		);
 	}
 
-	private spawnObject(template: Object3D, parent: Group, position: Vector3): Object3D {
-		const instance: Object3D = template.clone(true);
-		instance.position.copy(position);
-		parent.add(instance);
-		return instance;
-	}
-
 	private fetchTemplate(cachedData: LoadedGLTF, variantID: number): Object3D | null {
 		const { variants }: LoadedGLTF = cachedData;
 		// variants length === 0 -> shouldn't happen. If no variants were provided when loading, we set the scene as a variant at least
@@ -36,6 +29,13 @@ export class AssetSpawner {
 		// has variants + defined variantID
 		if (variantID >= 0 && variantID < variants.length) return variants[variantID];
 		return null;
+	}
+
+	public spawnObject(template: Object3D, parent: Group, position: Vector3): Object3D {
+		const instance: Object3D = template.clone(true);
+		instance.position.copy(position);
+		parent.add(instance);
+		return instance;
 	}
 
 	public spawnRandom(

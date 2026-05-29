@@ -34,7 +34,10 @@ const controls: OrbitControls = new OrbitControls(camera, renderer.domElement);
 
 const assetManager: AssetManager = new AssetManager();
 const assetSpawner: AssetSpawner = new AssetSpawner(assetManager);
-await assetManager.loadGLTF("tree", "realistic_tree/scene.gltf", ["Tree_0", "Tree001_1"]);
+await assetManager.loadGLTF("tree", "lod_tree/tree_decimating_modifiers_applied.glb", [
+	["Tree", "Tree002", "Tree004", "Tree006"],
+	["Tree001", "Tree003", "Tree005", "Tree007"],
+]);
 
 const ctx: AppContext = {
 	renderer: renderer,
