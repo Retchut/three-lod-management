@@ -47,7 +47,7 @@ export class AssetManager {
 		// 			separately, but will I ever do that? I don't think so
 		// load entire scene as a variant
 		if (variantNames.length === 0) {
-			modelCache.variants.push(gltf.scene);
+			modelCache.variants.push([gltf.scene]);
 			this._assetCache.set(modelKey, modelCache);
 			return;
 		}
