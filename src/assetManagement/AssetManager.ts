@@ -25,7 +25,7 @@ export class AssetManager {
 	public getAsset(assetID: string): LoadedGLTF | null {
 		const cachedData = this._assetCache.get(assetID);
 		if (cachedData == undefined) {
-			console.error(
+			console.warn(
 				`[AssetManager] Cache miss for asset with id ${assetID}. Did you forget to load it first?`,
 			);
 			return null;

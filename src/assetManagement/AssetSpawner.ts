@@ -31,11 +31,56 @@ export class AssetSpawner {
 		return null;
 	}
 
+	private loadCachedData(assetID: string): LoadedGLTF | null {
+		const cachedData: LoadedGLTF | null = this._manager.getAsset(assetID);
+		if (cachedData == null) return null;
+
+		if (cachedData.variants.length === 0) {
+			console.error(`[AssetSpawner] No variants exist for asset ${assetID}.`);
+			return null;
+		}
+		return cachedData;
+	}
+
+	private variantValid(variants: Object3D[][], variantID: number): boolean {
+		// -1 means random, not a variantID
+		if (variantID < -1 || variantID >= variants.length) {
+			console.error(
+				`[AssetSpawner] Invalid variantID provided: ${variantID}. Accepted values are -1 or integers between 0 and variants.length-1 (${variants.length - 1}).`,
+			);
+			return false;
+		}
+
+		return true;
+	}
+
 	public spawnObject(template: Object3D, parent: Group, position: Vector3): Object3D {
 		const instance: Object3D = template.clone(true);
 		instance.position.copy(position);
 		parent.add(instance);
 		return instance;
+	}
+
+	public spawnAt(
+		parent: Group,
+		assetID: string,
+		position: Vector3,
+		variantID: number = -1,
+	): Object3D | null {
+		const cachedData = this.loadCachedData(assetID);
+		if (cachedData == null) return null;
+
+		const { variants } = cachedData;
+		if (!this.variantValid(variants, variantID)) return null;
+
+		const template = this.fetchTemplate(cachedData, variantID);
+		if (template === null) {
+			console.error(
+				`[AssetSpawner] Unable to fetch template for variant ${variantID} of assetID ${assetID}.`,
+			);
+			return null;
+		}
+		return this.spawnObject(template, parent, position);
 	}
 
 	public spawnRandom(
@@ -45,22 +90,11 @@ export class AssetSpawner {
 		maxSpread: number,
 		variantID: number = -1,
 	): Object3D[] {
-		const cachedData: LoadedGLTF | null = this._manager.getAsset(assetID);
+		const cachedData = this.loadCachedData(assetID);
 		if (cachedData == null) return [];
-		const { variants }: LoadedGLTF = cachedData;
 
-		if (variants.length === 0) {
-			console.error(`[AssetSpawner] No variants exist for asset ${assetID}.`);
-			return [];
-		}
-
-		// -1 means random, not a variantID
-		if (variantID < -1 || variantID >= variants.length) {
-			console.error(
-				`[AssetSpawner] Invalid variantID provided: ${variantID}. Accepted values are -1 or integers between 0 and variants.length-1 (${variants.length - 1}).`,
-			);
-			return [];
-		}
+		const { variants } = cachedData;
+		if (!this.variantValid(variants, variantID)) return [];
 
 		let spawnedObjects: Object3D[] = [];
 		for (let i = 0; i < count; i++) {

@@ -4,6 +4,15 @@ import { AssetManager } from "../assetManagement/AssetManager";
 import { AssetSpawner } from "../assetManagement/AssetSpawner";
 import type { AppContext, BaseScene } from "../scenes/BaseScene";
 
+// some unrelated helpers
+const getAssetVariants = (assetManager: AssetManager, assetID: string) => {
+	return assetManager.getAsset(assetID)?.variants;
+};
+
+const getVariantIdxArray = (assetManager: AssetManager, assetID: string) => {
+	return [...Array(getAssetVariants(assetManager, assetID)?.length).keys()];
+};
+
 export function getSpawnUI(context: AppContext, activeScene: BaseScene) {
 	const { assetManager, assetSpawner } = context;
 	const gui = new GUI({ title: "Spawn Controls" });
@@ -17,12 +26,13 @@ export function getSpawnUI(context: AppContext, activeScene: BaseScene) {
 		randomPos: false,
 		randomSpread: 0,
 		spawnCallback: () => {
-			if (selectedParams.assetID === "") {
-				console.warn(`[getSpawnUI] Attempted to spawn but no asset was selected.`);
+			const variantNum = getAssetVariants(assetManager, selectedParams.assetID)?.length;
+			if (variantNum == null) {
+				console.warn(`[getSpawnUI] Attempted to spawn but the selected asset has no variants.`);
 				return;
 			}
-			if (selectedParams.assetVariant === -1) {
-				console.warn(`[getSpawnUI] Attempted to spawn but no variant ID was selected.`);
+			if (!canSpawn(selectedParams.assetID, selectedParams.assetVariant, variantNum)) {
+				console.warn(`[getSpawnUI] Attempted to spawn but no asset was selected.`);
 				return;
 			}
 			if (selectedParams.randomPos) {
@@ -35,16 +45,25 @@ export function getSpawnUI(context: AppContext, activeScene: BaseScene) {
 				);
 				return;
 			}
+			assetSpawner.spawnAt(
+				activeScene.getRoot(),
+				selectedParams.assetID,
+				new Vector3(selectedParams.x, selectedParams.y, selectedParams.z),
+				selectedParams.assetVariant,
+			);
 		},
 	};
 
-	const getAssetVariants = (assetID: string) => {
-		const assetVariants = assetManager.getAsset(assetID)?.variants;
-		return [...Array(assetVariants?.length).keys()];
-	};
+	const canSpawn = (selectedAssetID: string, selectedVariantID: number, variantNum: number) =>
+		selectedAssetID !== "" && selectedVariantID >= -1 && selectedVariantID < variantNum;
 
 	const updateSpawnButtonEnabled = (selectedAssetID: string, selectedVariantID: number) => {
-		spawnButton.enable(selectedAssetID !== "" && selectedVariantID !== -1);
+		const variantNum = getAssetVariants(assetManager, selectedAssetID)?.length;
+		if (variantNum == null) {
+			spawnButton.disable();
+			return;
+		}
+		spawnButton.enable(canSpawn(selectedAssetID, selectedVariantID, variantNum));
 	};
 
 	const updatePosSelectorsEnabled = (randomizePos: boolean) => {
@@ -58,17 +77,19 @@ export function getSpawnUI(context: AppContext, activeScene: BaseScene) {
 		.add(selectedParams, "assetID", loadedAssets)
 		.name("Object")
 		.onChange((newAssetID: string) => {
-			const variantIDs = getAssetVariants(newAssetID);
-			// assetVariant is set to -1 if no variants exist
+			const variantIDs = getVariantIdxArray(assetManager, newAssetID);
 			variantSelector.enable(variantIDs.length !== 0);
-			selectedParams.assetVariant = variantIDs.length === 0 ? -1 : 0;
-			variantSelector.options(variantIDs);
+			selectedParams.assetVariant = -1;
+			variantSelector.options([-1, ...variantIDs]);
 			variantSelector.updateDisplay();
 			updateSpawnButtonEnabled(newAssetID, selectedParams.assetVariant);
 		});
 	const variantSelector = gui
-		.add(selectedParams, "assetVariant", getAssetVariants(selectedParams.assetID))
-		.name("Selected Variant")
+		.add(selectedParams, "assetVariant", getVariantIdxArray(assetManager, selectedParams.assetID))
+		.name("Selected Variant (-1 = random)")
+		.onChange((newAssetVariant: number) => {
+			updateSpawnButtonEnabled(selectedParams.assetID, newAssetVariant);
+		})
 		.disable();
 	gui
 		.add(selectedParams, "randomPos")
@@ -83,6 +104,7 @@ export function getSpawnUI(context: AppContext, activeScene: BaseScene) {
 	const spawnButton = gui.add(selectedParams, "spawnCallback").name("Spawn Object");
 
 	// ensure ui values are correctly enabled, just in case I forgot anything
+	// Note: this throws cache miss warnings because we're actually testig the cache to define the UI values
 	updatePosSelectorsEnabled(selectedParams.randomPos);
 	updateSpawnButtonEnabled(selectedParams.assetID, selectedParams.assetVariant);
 }
