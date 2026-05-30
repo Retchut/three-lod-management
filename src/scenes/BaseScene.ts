@@ -54,6 +54,10 @@ export abstract class BaseScene {
 		return this.scene;
 	}
 
+	public getRoot(): Group {
+		return this.root;
+	}
+
 	public isLoaded(): boolean {
 		return this._loaded;
 	}

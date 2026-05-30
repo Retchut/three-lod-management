@@ -7,6 +7,7 @@ import { SimpleScene } from "./scenes/Simple";
 import { RandomizedScene } from "./scenes/Randomized";
 import { AssetManager } from "./assetManagement/AssetManager";
 import { AssetSpawner } from "./assetManagement/AssetSpawner";
+import { getSpawnUI } from "./ui/uiPanels";
 
 // performance monitoring
 // TODO: test mem stats panel on chromium - run w/ `--enable-precise-memory-info`
@@ -38,6 +39,7 @@ await assetManager.loadGLTF("tree", "lod_tree/tree_decimating_modifiers_applied.
 	["Tree", "Tree002", "Tree004", "Tree006"],
 	["Tree001", "Tree003", "Tree005", "Tree007"],
 ]);
+await assetManager.loadGLTF("tree2", "realistic_tree/scene.gltf", []);
 
 const ctx: AppContext = {
 	renderer: renderer,
@@ -49,6 +51,7 @@ const ctx: AppContext = {
 let currentScene = new SimpleScene();
 // let currentScene = new RandomizedScene();
 await currentScene.load(ctx);
+getSpawnUI(ctx, currentScene);
 
 let lastRenderTime: number = 0;
 function renderloop(time: number) {

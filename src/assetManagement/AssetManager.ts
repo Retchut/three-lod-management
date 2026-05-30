@@ -18,6 +18,10 @@ export class AssetManager {
 	}
 
 	// ----- getters -----
+	public getLoadedIDs(): string[] {
+		return Array.from(this._assetCache.keys());
+	}
+
 	public getAsset(assetID: string): LoadedGLTF | null {
 		const cachedData = this._assetCache.get(assetID);
 		if (cachedData == undefined) {

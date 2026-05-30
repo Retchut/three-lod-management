@@ -25,9 +25,9 @@ export class AssetSpawner {
 		// variants length === 0 -> shouldn't happen. If no variants were provided when loading, we set the scene as a variant at least
 		if (variants.length === 0) return null;
 		// variantID === -1 -> randomize variant
-		if (variantID === -1) return variants[Math.floor(Math.random() * variants.length)];
+		if (variantID === -1) return variants[Math.floor(Math.random() * variants.length)][0]; // I don't like the [0], but I guess that's my base mesh right now
 		// has variants + defined variantID
-		if (variantID >= 0 && variantID < variants.length) return variants[variantID];
+		if (variantID >= 0 && variantID < variants.length) return variants[variantID][0]; // I don't like the [0], but I guess that's my base mesh right now
 		return null;
 	}
 
@@ -72,6 +72,7 @@ export class AssetSpawner {
 				continue;
 			}
 			const instance = this.spawnObject(template, parent, this.getRandomPos(maxSpread));
+			// TODO: Setup LODs with remaining variants [1..X]
 			spawnedObjects.push(instance);
 		}
 		return spawnedObjects;
