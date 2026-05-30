@@ -33,16 +33,15 @@ export class SimpleScene extends BaseScene {
 		cube.position.set(5, 0, 5);
 		this.root.add(cube);
 
-		const lodVariants = context.assetManager.getAsset("tree")?.variants;
-
-		// just to check out the lods
-		if (lodVariants) {
-			for (let i = 0; i < lodVariants.length; i++) {
-				const v = lodVariants[i];
-				for (let j = 0; j < v.length; j++) {
-					const lod = v[j];
-					context.assetSpawner.spawnObject(lod, this.root, new Vector3(-1 + 2 * i, 0, -6 + 4 * j));
-				}
+		for (let varIdx = 0; varIdx < 2; varIdx++) {
+			for (let lod = 0; lod < 4; lod++) {
+				context.assetSpawner.spawnSingleLOD(
+					this.root,
+					"tree",
+					new Vector3(-1 + 2 * varIdx, 0, -6 + 4 * lod),
+					lod,
+					varIdx,
+				);
 			}
 		}
 	}

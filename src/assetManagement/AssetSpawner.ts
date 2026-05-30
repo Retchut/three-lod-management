@@ -20,15 +20,24 @@ export class AssetSpawner {
 		);
 	}
 
-	private fetchTemplate(cachedData: LoadedGLTF, variantID: number): Object3D | null {
-		const { variants }: LoadedGLTF = cachedData;
-		// variants length === 0 -> shouldn't happen. If no variants were provided when loading, we set the scene as a variant at least
-		if (variants.length === 0) return null;
+	private fetchTemplate(
+		cachedData: LoadedGLTF,
+		variantID: number,
+		baseLOD: number = 0,
+	): Object3D | null {
 		// variantID === -1 -> randomize variant
-		if (variantID === -1) return variants[Math.floor(Math.random() * variants.length)][0]; // I don't like the [0], but I guess that's my base mesh right now
-		// has variants + defined variantID
-		if (variantID >= 0 && variantID < variants.length) return variants[variantID][0]; // I don't like the [0], but I guess that's my base mesh right now
-		return null;
+		// variants length === 0 -> shouldn't happen. If no variants were provided when loading, we set the scene as a variant at least
+		const { variants }: LoadedGLTF = cachedData;
+		if (variants.length === 0) return null;
+
+		const finalVariantID =
+			variantID === -1 ? Math.floor(Math.random() * variants.length) : variantID;
+		if (finalVariantID < 0 || finalVariantID >= variants.length) return null;
+
+		const lodArr = variants[finalVariantID];
+		if (baseLOD < 0 || baseLOD >= lodArr.length) return null;
+
+		return lodArr[baseLOD];
 	}
 
 	private loadCachedData(assetID: string): LoadedGLTF | null {
@@ -59,6 +68,29 @@ export class AssetSpawner {
 		instance.position.copy(position);
 		parent.add(instance);
 		return instance;
+	}
+
+	public spawnSingleLOD(
+		parent: Group,
+		assetID: string,
+		position: Vector3,
+		lodID: number,
+		variantID: number = -1,
+	): Object3D | null {
+		const cachedData = this.loadCachedData(assetID);
+		if (cachedData == null) return null;
+
+		const { variants } = cachedData;
+		if (!this.variantValid(variants, variantID)) return null;
+
+		const template = this.fetchTemplate(cachedData, variantID, lodID);
+		if (template === null) {
+			console.error(
+				`[AssetSpawner] Unable to fetch template for variant ${variantID} of assetID ${assetID}.`,
+			);
+			return null;
+		}
+		return this.spawnObject(template, parent, position);
 	}
 
 	public spawnAt(
