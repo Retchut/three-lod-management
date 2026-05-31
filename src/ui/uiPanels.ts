@@ -3,6 +3,11 @@ import { Vector3 } from "three/webgpu";
 import { AssetManager } from "../assetManagement/AssetManager";
 import { AssetSpawner } from "../assetManagement/AssetSpawner";
 import type { AppContext, BaseScene } from "../scenes/BaseScene";
+import type { SceneManager } from "../scenes/SceneManager";
+import { SimpleScene } from "../scenes/Simple";
+import { RandomizedScene } from "../scenes/Randomized";
+
+const gui = new GUI({ title: "LOD Manager Controls" });
 
 // some unrelated helpers
 const getAssetVariants = (assetManager: AssetManager, assetID: string) => {
@@ -13,9 +18,56 @@ const getVariantIdxArray = (assetManager: AssetManager, assetID: string) => {
 	return [...Array(getAssetVariants(assetManager, assetID)?.length).keys()];
 };
 
-export function getSpawnUI(context: AppContext, activeScene: BaseScene) {
-	const { assetManager, assetSpawner } = context;
-	const gui = new GUI({ title: "Spawn Controls" });
+export function getSceneUI(ctx: AppContext, sceneManager: SceneManager) {
+	const sceneControls = gui.addFolder("Scene Controls");
+	const selectedParams = {
+		sceneType: "",
+		sceneLoader: () => {},
+	};
+
+	const checkLoadBtnEnable = () => {
+		const currentSceneNotSelected = !(
+			sceneManager.getCurrentScene()?.constructor.name === `${selectedParams.sceneType}Scene`
+		);
+		sceneLoadBtn.enable(currentSceneNotSelected);
+	};
+
+	// Note: Scene class names come in the format `<type>Scene`
+	const sceneDropdown = sceneControls
+		.add(selectedParams, "sceneType", ["Simple", "Randomized"])
+		.name("Scene to load")
+		.onChange(checkLoadBtnEnable);
+	const sceneLoadBtn = sceneControls
+		.add(selectedParams, "sceneLoader")
+		.name("Load")
+		.disable()
+		.onChange(async () => {
+			let newScene: BaseScene;
+			switch (selectedParams.sceneType) {
+				case "Simple":
+					newScene = new SimpleScene();
+					break;
+				case "Randomized":
+					newScene = new RandomizedScene();
+					break;
+				default:
+					return;
+			}
+			await sceneManager.loadScene(newScene, ctx);
+			checkLoadBtnEnable();
+		});
+
+	const currentScene = sceneManager.getCurrentScene();
+	if (currentScene != null) {
+		sceneDropdown.setValue(currentScene.constructor.name.replace("Scene", ""));
+	}
+	checkLoadBtnEnable();
+}
+
+export function getSpawnUI(ctx: AppContext, sceneManager: SceneManager) {
+	const currentScene: BaseScene | null = sceneManager.getCurrentScene();
+	const { assetManager, assetSpawner } = ctx;
+	const spawnControls = gui.addFolder("Spawn Controls");
 	const loadedAssets = assetManager.getLoadedIDs();
 	const selectedParams = {
 		assetID: "",
@@ -26,6 +78,11 @@ export function getSpawnUI(context: AppContext, activeScene: BaseScene) {
 		randomPos: false,
 		randomSpread: 0,
 		spawnCallback: () => {
+			if (currentScene == null) {
+				console.error(`[getSpawnUI] No scene to spawn objects into. Aborting...`);
+				return;
+			}
+
 			const variantNum = getAssetVariants(assetManager, selectedParams.assetID)?.length;
 			if (variantNum == null) {
 				console.warn(`[getSpawnUI] Attempted to spawn but the selected asset has no variants.`);
@@ -37,7 +94,7 @@ export function getSpawnUI(context: AppContext, activeScene: BaseScene) {
 			}
 			if (selectedParams.randomPos) {
 				assetSpawner.spawnRandom(
-					activeScene.getRoot(),
+					currentScene.getRoot(),
 					selectedParams.assetID,
 					1,
 					selectedParams.randomSpread,
@@ -46,7 +103,7 @@ export function getSpawnUI(context: AppContext, activeScene: BaseScene) {
 				return;
 			}
 			assetSpawner.spawnAt(
-				activeScene.getRoot(),
+				currentScene.getRoot(),
 				selectedParams.assetID,
 				new Vector3(selectedParams.x, selectedParams.y, selectedParams.z),
 				selectedParams.assetVariant,
@@ -73,7 +130,7 @@ export function getSpawnUI(context: AppContext, activeScene: BaseScene) {
 		randomSpreadSelector.enable(randomizePos);
 	};
 
-	gui
+	spawnControls
 		.add(selectedParams, "assetID", loadedAssets)
 		.name("Object")
 		.onChange((newAssetID: string) => {
@@ -84,24 +141,24 @@ export function getSpawnUI(context: AppContext, activeScene: BaseScene) {
 			variantSelector.updateDisplay();
 			updateSpawnButtonEnabled(newAssetID, selectedParams.assetVariant);
 		});
-	const variantSelector = gui
+	const variantSelector = spawnControls
 		.add(selectedParams, "assetVariant", getVariantIdxArray(assetManager, selectedParams.assetID))
 		.name("Selected Variant (-1 = random)")
 		.onChange((newAssetVariant: number) => {
 			updateSpawnButtonEnabled(selectedParams.assetID, newAssetVariant);
 		})
 		.disable();
-	gui
+	spawnControls
 		.add(selectedParams, "randomPos")
 		.name("Randomize Position")
 		.onChange((randomizePos: boolean) => updatePosSelectorsEnabled(randomizePos));
-	const randomSpreadSelector = gui
+	const randomSpreadSelector = spawnControls
 		.add(selectedParams, "randomSpread", 0, 50)
 		.name("Randomization Spread");
-	const xPosSelector = gui.add(selectedParams, "x").name("Spawn x");
-	const yPosSelector = gui.add(selectedParams, "y").name("Spawn y");
-	const zPosSelector = gui.add(selectedParams, "z").name("Spawn z");
-	const spawnButton = gui.add(selectedParams, "spawnCallback").name("Spawn Object");
+	const xPosSelector = spawnControls.add(selectedParams, "x").name("Spawn x");
+	const yPosSelector = spawnControls.add(selectedParams, "y").name("Spawn y");
+	const zPosSelector = spawnControls.add(selectedParams, "z").name("Spawn z");
+	const spawnButton = spawnControls.add(selectedParams, "spawnCallback").name("Spawn Object");
 
 	// ensure ui values are correctly enabled, just in case I forgot anything
 	// Note: this throws cache miss warnings because we're actually testig the cache to define the UI values

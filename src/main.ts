@@ -7,7 +7,9 @@ import { SimpleScene } from "./scenes/Simple";
 import { RandomizedScene } from "./scenes/Randomized";
 import { AssetManager } from "./assetManagement/AssetManager";
 import { AssetSpawner } from "./assetManagement/AssetSpawner";
-import { getSpawnUI } from "./ui/uiPanels";
+import { getSceneUI, getSpawnUI } from "./ui/uiPanels";
+import { SceneManager } from "./scenes/SceneManager";
+import { context } from "three/tsl";
 
 // performance monitoring
 // TODO: test mem stats panel on chromium - run w/ `--enable-precise-memory-info`
@@ -39,7 +41,7 @@ await assetManager.loadGLTF("tree", "lod_tree/tree_decimating_modifiers_applied.
 	["Tree", "Tree002", "Tree004", "Tree006"],
 	["Tree001", "Tree003", "Tree005", "Tree007"],
 ]);
-await assetManager.loadGLTF("tree2", "realistic_tree/scene.gltf", []);
+await assetManager.loadGLTF("original tree", "realistic_tree/scene.gltf", []);
 
 const ctx: AppContext = {
 	renderer: renderer,
@@ -48,20 +50,17 @@ const ctx: AppContext = {
 	assetManager: assetManager,
 	assetSpawner: assetSpawner,
 };
-let currentScene = new SimpleScene();
-// let currentScene = new RandomizedScene();
-await currentScene.load(ctx);
-getSpawnUI(ctx, currentScene);
+const sceneManager = new SceneManager();
+await sceneManager.loadScene(new SimpleScene(), ctx);
+getSceneUI(ctx, sceneManager);
+getSpawnUI(ctx, sceneManager);
 
 let lastRenderTime: number = 0;
 function renderloop(time: number) {
 	const deltaTime = (time - lastRenderTime) / 1000;
 	lastRenderTime = time;
 	statObjs.forEach((stats: Stats) => stats.begin());
-	if (currentScene.isLoaded()) {
-		currentScene.update(deltaTime, ctx);
-		renderer.render(currentScene.getScene(), camera);
-	}
+	sceneManager.update(deltaTime, ctx);
 	statObjs.forEach((stats: Stats) => stats.end());
 }
 renderer.setAnimationLoop(renderloop);
