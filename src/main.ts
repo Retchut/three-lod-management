@@ -7,7 +7,7 @@ import { SimpleScene } from "./scenes/Simple";
 import { RandomizedScene } from "./scenes/Randomized";
 import { AssetManager } from "./assetManagement/AssetManager";
 import { AssetSpawner } from "./assetManagement/AssetSpawner";
-import { getSceneUI, getSpawnUI } from "./ui/uiPanels";
+import { getDebugStatsUI, getSceneUI, getSpawnUI } from "./ui/uiPanels";
 import { SceneManager } from "./scenes/SceneManager";
 import { context } from "three/tsl";
 
@@ -54,6 +54,7 @@ const sceneManager = new SceneManager();
 await sceneManager.loadScene(new SimpleScene(), ctx);
 getSceneUI(ctx, sceneManager);
 getSpawnUI(ctx, sceneManager);
+getDebugStatsUI(ctx);
 
 let lastRenderTime: number = 0;
 function renderloop(time: number) {

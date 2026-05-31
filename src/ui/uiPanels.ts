@@ -165,3 +165,16 @@ export function getSpawnUI(ctx: AppContext, sceneManager: SceneManager) {
 	updatePosSelectorsEnabled(selectedParams.randomPos);
 	updateSpawnButtonEnabled(selectedParams.assetID, selectedParams.assetVariant);
 }
+
+export function getDebugStatsUI(ctx: AppContext) {
+	const statsFolder = gui.addFolder("Debug Stats");
+	const memoryFolder = statsFolder.addFolder("Memory Stats").close();
+	const renderFolder = statsFolder.addFolder("Render Stats").close();
+
+	const aggregateMetrics = <T extends object>(parent: GUI, metrics: T) => {
+		const metricKeys = Object.keys(metrics) as Array<keyof T>;
+		metricKeys.forEach((key: keyof T) => parent.add(metrics, key).disable().listen());
+	};
+	aggregateMetrics(memoryFolder, ctx.renderer.info.memory);
+	aggregateMetrics(renderFolder, ctx.renderer.info.render);
+}
