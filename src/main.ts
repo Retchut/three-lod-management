@@ -1,7 +1,7 @@
 import "./style.css";
 import Stats from "stats.js";
 import { PerspectiveCamera, WebGPURenderer } from "three/webgpu";
-import { OrbitControls } from "three/examples/jsm/Addons.js";
+import { FlyControls } from "three/examples/jsm/Addons.js";
 import type { AppContext } from "./scenes/BaseScene";
 import { SimpleScene } from "./scenes/Simple";
 import { RandomizedScene } from "./scenes/Randomized";
@@ -33,7 +33,11 @@ const camera: PerspectiveCamera = new PerspectiveCamera(
 	1000,
 );
 
-const controls: OrbitControls = new OrbitControls(camera, renderer.domElement);
+const controls: FlyControls = new FlyControls(camera, renderer.domElement);
+controls.movementSpeed = 5;
+controls.rollSpeed = (Math.PI / 24) * 10;
+controls.autoForward = false;
+controls.dragToLook = true;
 
 const assetManager: AssetManager = new AssetManager();
 const assetSpawner: AssetSpawner = new AssetSpawner(assetManager);
@@ -62,6 +66,7 @@ function renderloop(time: number) {
 	lastRenderTime = time;
 	statObjs.forEach((stats: Stats) => stats.begin());
 	sceneManager.update(deltaTime, ctx);
+	controls.update(deltaTime);
 	statObjs.forEach((stats: Stats) => stats.end());
 }
 renderer.setAnimationLoop(renderloop);

@@ -1,6 +1,7 @@
 import {
 	AxesHelper,
 	Camera,
+	Controls,
 	GridHelper,
 	Group,
 	Light,
@@ -12,14 +13,13 @@ import {
 	Vector3,
 	WebGPURenderer,
 } from "three/webgpu";
-import { OrbitControls } from "three/examples/jsm/Addons.js";
 import type { AssetManager } from "../assetManagement/AssetManager";
 import type { AssetSpawner } from "../assetManagement/AssetSpawner";
 
 export type AppContext = {
 	renderer: WebGPURenderer;
 	camera: Camera;
-	camControls: OrbitControls; // TODO: replace with basecontrols and check in scenes which ones are active
+	camControls: Controls; // mayhaps allow me to switch back to orbit controls later down the line? mmm?
 	assetManager: AssetManager;
 	assetSpawner: AssetSpawner;
 };
@@ -78,10 +78,10 @@ export abstract class BaseScene {
 	}
 
 	protected updateCamera(context: AppContext, camPos: Vector3): void {
-		// TODO: it's probably best that receive more info about the camera, and definitely support different camera controls, later down the line.... or make this abstract as well and setup in the parent scene. only time will tell, and for now this will do
+		// TODO: I'm indeed liking the idea of getting some camera info, so we can make the camera persist through scenes.
 		context.camera.position.copy(camPos);
-		context.camControls.target.set(0, 0, 0);
-		context.camControls.update();
+		// context.camControls.target.set(0, 0, 0); // used by the OrbitControls, keeping it commented in case I decide to add multiple control types
+		context.camControls.update(0);
 	}
 
 	public async load(context: AppContext): Promise<void> {
