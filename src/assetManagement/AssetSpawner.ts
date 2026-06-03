@@ -20,21 +20,30 @@ export class AssetSpawner {
 		);
 	}
 
-	private fetchTemplate(
-		cachedData: LoadedGLTF,
-		variantID: number,
-		baseLOD: number = 0,
-	): Object3D | null {
-		// variantID === -1 -> randomize variant
-		// variants length === 0 -> shouldn't happen. If no variants were provided when loading, we set the scene as a variant at least
-		const { variants }: LoadedGLTF = cachedData;
+	private resolveVariantID(
+		variants: Object3D[][],
+		variantID: number
+	): number | null {
 		if (variants.length === 0) return null;
 
-		const finalVariantID =
-			variantID === -1 ? Math.floor(Math.random() * variants.length) : variantID;
-		if (finalVariantID < 0 || finalVariantID >= variants.length) return null;
+		// variantID === -1 -> randomize variant
+		// else perserve variantID
+		if(variantID === -1) {
+			return Math.floor(Math.random() * variants.length)
+		}
 
-		const lodArr = variants[finalVariantID];
+		// catch other illegal variants
+		if (variantID < 0 || variantID >= variants.length) return null;
+
+		return variantID;
+	}
+
+	private fetchTemplate(
+		variants: Object3D[][],
+		variantID: number,
+		baseLOD: number = 0,
+	){
+		const lodArr = variants[variantID];
 		if (baseLOD < 0 || baseLOD >= lodArr.length) return null;
 
 		return lodArr[baseLOD];
@@ -83,7 +92,9 @@ export class AssetSpawner {
 		const { variants } = cachedData;
 		if (!this.variantValid(variants, variantID)) return null;
 
-		const template = this.fetchTemplate(cachedData, variantID, lodID);
+		const resolvedID = this.resolveVariantID(cachedData.variants, variantID);
+		if(resolvedID == null) return null;
+		const template = this.fetchTemplate(cachedData.variants, resolvedID, lodID);
 		if (template === null) {
 			console.error(
 				`[AssetSpawner] Unable to fetch template for variant ${variantID} of assetID ${assetID}.`,
@@ -105,7 +116,9 @@ export class AssetSpawner {
 		const { variants } = cachedData;
 		if (!this.variantValid(variants, variantID)) return null;
 
-		const template = this.fetchTemplate(cachedData, variantID);
+		const resolvedID = this.resolveVariantID(cachedData.variants, variantID);
+		if(resolvedID == null) return null;
+		const template = this.fetchTemplate(cachedData.variants, resolvedID);
 		if (template === null) {
 			console.error(
 				`[AssetSpawner] Unable to fetch template for variant ${variantID} of assetID ${assetID}.`,
@@ -130,7 +143,14 @@ export class AssetSpawner {
 
 		let spawnedObjects: Object3D[] = [];
 		for (let i = 0; i < count; i++) {
-			const template = this.fetchTemplate(cachedData, variantID);
+			const resolvedID = this.resolveVariantID(cachedData.variants, variantID);
+			if(resolvedID == null){
+				console.error(
+					`[AssetSpawner] Unable to resolve variant ID for instance number ${i} of asset with ID ${assetID}.`,
+				);
+				continue;
+			}
+			const template = this.fetchTemplate(cachedData.variants, resolvedID);
 			if (template === null) {
 				console.error(
 					`[AssetSpawner] Attempted to spawn instance number ${i} of asset with ID ${assetID}, but was unable to fetch a template.`,
