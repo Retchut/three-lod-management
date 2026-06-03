@@ -12,7 +12,7 @@ import { BaseScene, type AppContext } from "./BaseScene";
 
 export class SimpleScene extends BaseScene {
 	constructor() {
-		super("simplescene", new Vector3(4, 3, 4), true);
+		super("simplescene", new Vector3(0, 3, 4), true);
 	}
 
 	protected setupLighting(): void {

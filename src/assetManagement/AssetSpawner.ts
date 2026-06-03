@@ -1,4 +1,4 @@
-import { Vector3, type Group, type Object3D } from "three/webgpu";
+import { LOD, Vector3, type Group, type Object3D } from "three/webgpu";
 import type { AssetManager, LoadedGLTF } from "./AssetManager";
 
 export class AssetSpawner {
@@ -79,6 +79,16 @@ export class AssetSpawner {
 		return instance;
 	}
 
+	private spawnLODs(lods: Object3D[], parent: Group, position: Vector3): Object3D {
+		const lodObj: LOD = new LOD();
+		lods.forEach((level: Object3D, i :number) => {
+			lodObj.addLevel(level.clone(true), i*10);
+		})
+		lodObj.position.copy(position);
+		parent.add(lodObj);
+		return lodObj;
+	}
+
 	public spawnSingleLOD(
 		parent: Group,
 		assetID: string,
@@ -93,7 +103,12 @@ export class AssetSpawner {
 		if (!this.variantValid(variants, variantID)) return null;
 
 		const resolvedID = this.resolveVariantID(cachedData.variants, variantID);
-		if(resolvedID == null) return null;
+		if(resolvedID == null){
+			console.error(
+				`[AssetSpawner] Unable to resolve variant ID for variant ${variantID} of assetID ${assetID}.`,
+			);
+			return null;
+		}
 		const template = this.fetchTemplate(cachedData.variants, resolvedID, lodID);
 		if (template === null) {
 			console.error(
@@ -117,15 +132,13 @@ export class AssetSpawner {
 		if (!this.variantValid(variants, variantID)) return null;
 
 		const resolvedID = this.resolveVariantID(cachedData.variants, variantID);
-		if(resolvedID == null) return null;
-		const template = this.fetchTemplate(cachedData.variants, resolvedID);
-		if (template === null) {
+		if(resolvedID == null){
 			console.error(
-				`[AssetSpawner] Unable to fetch template for variant ${variantID} of assetID ${assetID}.`,
+				`[AssetSpawner] Unable to resolve variant ID for variant ${variantID} of assetID ${assetID}.`,
 			);
 			return null;
 		}
-		return this.spawnObject(template, parent, position);
+		return this.spawnLODs(cachedData.variants[resolvedID], parent, position);
 	}
 
 	public spawnRandom(
@@ -143,22 +156,14 @@ export class AssetSpawner {
 
 		let spawnedObjects: Object3D[] = [];
 		for (let i = 0; i < count; i++) {
-			const resolvedID = this.resolveVariantID(cachedData.variants, variantID);
+			const resolvedID : number | null = this.resolveVariantID(cachedData.variants, variantID);
 			if(resolvedID == null){
 				console.error(
 					`[AssetSpawner] Unable to resolve variant ID for instance number ${i} of asset with ID ${assetID}.`,
 				);
 				continue;
 			}
-			const template = this.fetchTemplate(cachedData.variants, resolvedID);
-			if (template === null) {
-				console.error(
-					`[AssetSpawner] Attempted to spawn instance number ${i} of asset with ID ${assetID}, but was unable to fetch a template.`,
-				);
-				continue;
-			}
-			const instance = this.spawnObject(template, parent, this.getRandomPos(maxSpread));
-			// TODO: Setup LODs with remaining variants [1..X]
+			const instance = this.spawnLODs(cachedData.variants[resolvedID], parent, this.getRandomPos(maxSpread));
 			spawnedObjects.push(instance);
 		}
 		return spawnedObjects;
