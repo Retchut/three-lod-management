@@ -63,7 +63,7 @@ export class AssetSpawner {
 		return true;
 	}
 
-	public spawnObject(template: Object3D, parent: Group, position: Vector3): Object3D {
+	private spawnObject(template: Object3D, parent: Group, position: Vector3): Object3D {
 		const instance: Object3D = template.clone(true);
 		instance.position.copy(position);
 		parent.add(instance);
