@@ -6,6 +6,7 @@ import type { AppContext, BaseScene } from "../scenes/BaseScene";
 import type { SceneManager } from "../scenes/SceneManager";
 import { SimpleScene } from "../scenes/Simple";
 import { RandomizedScene } from "../scenes/Randomized";
+import { LODDisplayScene } from "../scenes/LODDisplay";
 
 const gui = new GUI({ title: "LOD Manager Controls" });
 
@@ -34,7 +35,7 @@ export function getSceneUI(ctx: AppContext, sceneManager: SceneManager) {
 
 	// Note: Scene class names come in the format `<type>Scene`
 	const sceneDropdown = sceneControls
-		.add(selectedParams, "sceneType", ["Simple", "Randomized"])
+		.add(selectedParams, "sceneType", ["Simple", "LODDisplay", "Randomized"])
 		.name("Scene to load")
 		.onChange(checkLoadBtnEnable);
 	const sceneLoadBtn = sceneControls
@@ -46,6 +47,9 @@ export function getSceneUI(ctx: AppContext, sceneManager: SceneManager) {
 			switch (selectedParams.sceneType) {
 				case "Simple":
 					newScene = new SimpleScene();
+					break;
+				case "LODDisplay":
+					newScene = new LODDisplayScene();
 					break;
 				case "Randomized":
 					newScene = new RandomizedScene();

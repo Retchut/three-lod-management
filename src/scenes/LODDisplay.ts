@@ -10,9 +10,9 @@ import {
 } from "three/webgpu";
 import { BaseScene, type AppContext } from "./BaseScene";
 
-export class SimpleScene extends BaseScene {
+export class LODDisplayScene extends BaseScene {
 	constructor() {
-		super("simplescene", new Vector3(4, 3, 4), true);
+		super("LODDisplay", new Vector3(4, 3, 4), true);
 	}
 
 	protected setupLighting(): void {
@@ -32,8 +32,18 @@ export class SimpleScene extends BaseScene {
 		const cube = new Mesh(geometry, material);
 		cube.position.set(5, 0, 5);
 		this.root.add(cube);
-		
-		context.assetSpawner.spawnAt(this.root, "tree", new Vector3(-4.7,0,0), 0);
+
+		for (let varIdx = 0; varIdx < 2; varIdx++) {
+			for (let lod = 0; lod < 4; lod++) {
+				context.assetSpawner.spawnSingleLOD(
+					this.root,
+					"tree",
+					new Vector3(-1 + 2 * varIdx, 0, -6 + 4 * lod),
+					lod,
+					varIdx,
+				);
+			}
+		}
 	}
 
 	public update(deltaTime: number, context: AppContext): void {
