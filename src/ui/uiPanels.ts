@@ -69,7 +69,7 @@ export function getSceneUI(ctx: AppContext, sceneManager: SceneManager) {
 }
 
 export function getSpawnUI(ctx: AppContext, sceneManager: SceneManager) {
-	const currentScene: BaseScene | null = sceneManager.getCurrentScene();
+	let currentScene: BaseScene | null = sceneManager.getCurrentScene();
 	const { assetManager, assetSpawner } = ctx;
 	const spawnControls = gui.addFolder("Spawn Controls");
 	const loadedAssets = assetManager.getLoadedIDs();
@@ -86,6 +86,7 @@ export function getSpawnUI(ctx: AppContext, sceneManager: SceneManager) {
 				console.error(`[getSpawnUI] No scene to spawn objects into. Aborting...`);
 				return;
 			}
+			currentScene = sceneManager.getCurrentScene();
 
 			const variantNum = getAssetVariants(assetManager, selectedParams.assetID)?.length;
 			if (variantNum == null) {
