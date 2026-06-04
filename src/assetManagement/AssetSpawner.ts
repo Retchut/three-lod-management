@@ -82,7 +82,7 @@ export class AssetSpawner {
 	private spawnLODs(lods: Object3D[], parent: Group, position: Vector3): Object3D {
 		const lodObj: LOD = new LOD();
 		lods.forEach((level: Object3D, i :number) => {
-			lodObj.addLevel(level.clone(true), i*10);
+			lodObj.addLevel(level.clone(true), i*10, 0.1);
 		})
 		lodObj.position.copy(position);
 		parent.add(lodObj);
