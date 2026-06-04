@@ -173,6 +173,7 @@ export function getSpawnUI(ctx: AppContext, sceneManager: SceneManager) {
 
 export function getDebugStatsUI(ctx: AppContext) {
 	const statsFolder = gui.addFolder("Debug Stats");
+	const camFolder = statsFolder.addFolder("Camera Stats");
 	const memoryFolder = statsFolder.addFolder("Memory Stats").close();
 	const renderFolder = statsFolder.addFolder("Render Stats").close();
 
@@ -180,6 +181,9 @@ export function getDebugStatsUI(ctx: AppContext) {
 		const metricKeys = Object.keys(metrics) as Array<keyof T>;
 		metricKeys.forEach((key: keyof T) => parent.add(metrics, key).disable().listen());
 	};
+	camFolder.add(ctx.camera.position, "x").decimals(3).disable().listen();
+	camFolder.add(ctx.camera.position, "y").decimals(3).disable().listen();
+	camFolder.add(ctx.camera.position, "z").decimals(3).disable().listen();
 	aggregateMetrics(memoryFolder, ctx.renderer.info.memory);
 	aggregateMetrics(renderFolder, ctx.renderer.info.render);
 }
