@@ -4,22 +4,24 @@
 
 - [x] basic scene utilities and application loop
 - [x] basic asset management and spawning utilities
-- [ ] flying camera controls
+- [x] flying camera controls
 - [ ] debug/performance tracking utilities
   - [x] basic memory and framerate display
-  - [ ] visible polygon counts
+  - [x] visible polygon counts
+  - [ ] better poly count
 - [ ] ui controls
   - [ ] changing between camera types
-  - [ ] entity spawning
-    - [ ] spawning entities
-    - [ ] selecting from loaded entities + specifying number
+  - [x] entity spawning
+    - [x] spawning entities
+    - [x] selecting from loaded entities
 - [ ] lod implementation
   - [x] generate LODs (not on code)
-  - [ ] load lods into cache
-  - [ ] swap between lods based on distance
-- [ ] lod optimization
-  - [ ] simple linear blend betweeen lods
-  - [ ] performance aware-ish blending
+  - [x] load lods into cache
+  - [x] swap between lods based on distance
+  - [ ] verify histeresis
+  - [ ] better blend between distances
+  - [ ] reduce lod distance based on device specs
+  - [ ] reduce lod distance based on hit to fps
 
 ### Testing:
 
