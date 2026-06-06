@@ -1,3 +1,12 @@
+## How to run
+
+Run the `fetchModels.sh` script first, which will fetch the referenced models in the code from a public dropbox folder, and place them in the correct location.
+Then either:
+
+- run with the docker-compose config file: `docker-compose -f docker-compose.yaml up`
+- build and run the provided Dockerfile: `docker build -t three-lods -f Dockerfile . && docker run -p 5173:5173 three-lods`
+- install dependencies and run with your package manager of choice: (npm example) `npm install && npm run dev`
+
 ## Assets used
 
 "More Realistic Trees Free!" (https://skfb.ly/owLwy) by Nicholas-3D is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/).
