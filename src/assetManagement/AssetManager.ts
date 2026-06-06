@@ -6,6 +6,7 @@ const BASE_MODEL_URL = "models/";
 export type LoadedGLTF = {
 	data: GLTF;
 	variants: Object3D[][]; // should likely be keyed but it's enough for this test
+	objectQuality: number; // used to control the quality ratio for this GLTF's lods, if any - defaults to 1.0
 };
 
 export class AssetManager {
@@ -35,11 +36,17 @@ export class AssetManager {
 	// --------------------
 
 	// TODO: it's probably worth making this method return the LoadedGLTF object, if nothing else, just for testing purposes
-	public async loadGLTF(modelKey: string, modelPath: string, variantNames: string[][]) {
+	public async loadGLTF(
+		modelKey: string,
+		modelPath: string,
+		variantNames: string[][],
+		lodQuality: number = 1.0,
+	) {
 		const gltf: GLTF = await this._gltfLoader.loadAsync(`${BASE_MODEL_URL}${modelPath}`);
 		const modelCache: LoadedGLTF = {
 			data: gltf,
 			variants: [],
+			objectQuality: lodQuality,
 		};
 
 		// TODO: maybe it's not such a great idea to allow loading a scene without specifying lods, since the whole point of this

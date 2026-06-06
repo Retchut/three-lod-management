@@ -7,8 +7,9 @@ import { SimpleScene } from "./scenes/Simple";
 import { RandomizedScene } from "./scenes/Randomized";
 import { AssetManager } from "./assetManagement/AssetManager";
 import { AssetSpawner } from "./assetManagement/AssetSpawner";
-import { getDebugStatsUI, getSceneUI, getSpawnUI } from "./ui/uiPanels";
+import { getDebugStatsUI, getLODUI, getSceneUI, getSpawnUI } from "./ui/uiPanels";
 import { SceneManager } from "./scenes/SceneManager";
+import { LODManager } from "./assetManagement/LODManager";
 
 // performance monitoring
 // TODO: test mem stats panel on chromium - run w/ `--enable-precise-memory-info`
@@ -38,13 +39,18 @@ controls.rollSpeed = (Math.PI / 24) * 10;
 controls.autoForward = false;
 controls.dragToLook = true;
 
+const lodManager = new LODManager(camera);
 const assetManager: AssetManager = new AssetManager();
-const assetSpawner: AssetSpawner = new AssetSpawner(assetManager);
-await assetManager.loadGLTF("tree", "lod_tree/tree_decimating_modifiers_applied.glb", [
-	["Tree", "Tree002", "Tree004", "Tree006"],
-	["Tree001", "Tree003", "Tree005", "Tree007"],
-]);
-await assetManager.loadGLTF("original tree", "realistic_tree/scene.gltf", []);
+const assetSpawner: AssetSpawner = new AssetSpawner(assetManager, lodManager);
+await assetManager.loadGLTF(
+	"tree",
+	"lod_tree/tree_decimating_modifiers_applied.glb",
+	[
+		["Tree", "Tree002", "Tree004", "Tree006"],
+		["Tree001", "Tree003", "Tree005", "Tree007"],
+	],
+	0.5,
+);
 
 const ctx: AppContext = {
 	renderer: renderer,
@@ -52,10 +58,12 @@ const ctx: AppContext = {
 	camControls: controls,
 	assetManager: assetManager,
 	assetSpawner: assetSpawner,
+	lodManager: lodManager,
 };
 const sceneManager = new SceneManager();
 await sceneManager.loadScene(new SimpleScene(), ctx);
 getSceneUI(ctx, sceneManager);
+getLODUI(ctx);
 getSpawnUI(ctx, sceneManager);
 getDebugStatsUI(ctx);
 

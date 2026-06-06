@@ -68,6 +68,21 @@ export function getSceneUI(ctx: AppContext, sceneManager: SceneManager) {
 	checkLoadBtnEnable();
 }
 
+export function getLODUI(ctx: AppContext) {
+	const lodControls = gui.addFolder("LOD Quality Controls");
+	const selectedParams = {
+		lodQuality: 1,
+		apply: () => {
+			ctx.lodManager.setQuality(selectedParams.lodQuality);
+		},
+	};
+	lodControls
+		.add(selectedParams, "lodQuality", 0, 5)
+		.name("LOD Quality Ratio")
+		.onChange((val: number) => applybtn.disable(val == ctx.lodManager.getQuality()));
+	const applybtn = lodControls.add(selectedParams, "apply").name("Apply").disable();
+}
+
 export function getSpawnUI(ctx: AppContext, sceneManager: SceneManager) {
 	let currentScene: BaseScene | null = sceneManager.getCurrentScene();
 	const { assetManager, assetSpawner } = ctx;
