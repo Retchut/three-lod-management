@@ -20,16 +20,13 @@ export class AssetSpawner {
 		);
 	}
 
-	private resolveVariantID(
-		variants: Object3D[][],
-		variantID: number
-	): number | null {
+	private resolveVariantID(variants: Object3D[][], variantID: number): number | null {
 		if (variants.length === 0) return null;
 
 		// variantID === -1 -> randomize variant
 		// else perserve variantID
-		if(variantID === -1) {
-			return Math.floor(Math.random() * variants.length)
+		if (variantID === -1) {
+			return Math.floor(Math.random() * variants.length);
 		}
 
 		// catch other illegal variants
@@ -38,11 +35,7 @@ export class AssetSpawner {
 		return variantID;
 	}
 
-	private fetchTemplate(
-		variants: Object3D[][],
-		variantID: number,
-		baseLOD: number = 0,
-	){
+	private fetchTemplate(variants: Object3D[][], variantID: number, baseLOD: number = 0) {
 		const lodArr = variants[variantID];
 		if (baseLOD < 0 || baseLOD >= lodArr.length) return null;
 
@@ -81,9 +74,9 @@ export class AssetSpawner {
 
 	private spawnLODs(lods: Object3D[], parent: Group, position: Vector3): Object3D {
 		const lodObj: LOD = new LOD();
-		lods.forEach((level: Object3D, i :number) => {
-			lodObj.addLevel(level.clone(true), i*10, 0.1);
-		})
+		lods.forEach((level: Object3D, i: number) => {
+			lodObj.addLevel(level.clone(true), i * 10, 0.1);
+		});
 		lodObj.position.copy(position);
 		parent.add(lodObj);
 		return lodObj;
@@ -103,7 +96,7 @@ export class AssetSpawner {
 		if (!this.variantValid(variants, variantID)) return null;
 
 		const resolvedID = this.resolveVariantID(cachedData.variants, variantID);
-		if(resolvedID == null){
+		if (resolvedID == null) {
 			console.error(
 				`[AssetSpawner] Unable to resolve variant ID for variant ${variantID} of assetID ${assetID}.`,
 			);
@@ -132,7 +125,7 @@ export class AssetSpawner {
 		if (!this.variantValid(variants, variantID)) return null;
 
 		const resolvedID = this.resolveVariantID(cachedData.variants, variantID);
-		if(resolvedID == null){
+		if (resolvedID == null) {
 			console.error(
 				`[AssetSpawner] Unable to resolve variant ID for variant ${variantID} of assetID ${assetID}.`,
 			);
@@ -156,14 +149,18 @@ export class AssetSpawner {
 
 		let spawnedObjects: Object3D[] = [];
 		for (let i = 0; i < count; i++) {
-			const resolvedID : number | null = this.resolveVariantID(cachedData.variants, variantID);
-			if(resolvedID == null){
+			const resolvedID: number | null = this.resolveVariantID(cachedData.variants, variantID);
+			if (resolvedID == null) {
 				console.error(
 					`[AssetSpawner] Unable to resolve variant ID for instance number ${i} of asset with ID ${assetID}.`,
 				);
 				continue;
 			}
-			const instance = this.spawnLODs(cachedData.variants[resolvedID], parent, this.getRandomPos(maxSpread));
+			const instance = this.spawnLODs(
+				cachedData.variants[resolvedID],
+				parent,
+				this.getRandomPos(maxSpread),
+			);
 			spawnedObjects.push(instance);
 		}
 		return spawnedObjects;

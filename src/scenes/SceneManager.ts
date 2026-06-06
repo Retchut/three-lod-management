@@ -25,6 +25,5 @@ export class SceneManager {
 			this._currentScene.update(deltaTime, context);
 			context.renderer.render(this._currentScene.getScene(), context.camera);
 		}
-		this._currentScene?.update(deltaTime, context);
 	}
 }
