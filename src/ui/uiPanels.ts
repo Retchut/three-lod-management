@@ -76,6 +76,26 @@ function getLODUI(ctx: AppContext) {
 			ctx.lodManager.setQuality(selectedParams.lodQuality);
 		},
 	};
+	const qualityListener = {
+		get lodQuality() {
+			return ctx.lodManager.getQuality();
+		},
+		get fpsTarget() {
+			return ctx.performanceManager.getFPSTarget();
+		},
+		get fpsAvg() {
+			return ctx.performanceManager.getFPSAvg();
+		},
+	};
+	lodControls.add(qualityListener, "fpsTarget").name("FPS Target").listen().decimals(3).disable();
+	lodControls.add(qualityListener, "fpsAvg").name("FPS Average").listen().decimals(3).disable();
+	lodControls
+		.add(qualityListener, "lodQuality")
+		.name("Current quality")
+		.listen()
+		.decimals(3)
+		.onChange((val: number) => (selectedParams.lodQuality = val))
+		.disable();
 	lodControls
 		.add(selectedParams, "lodQuality", 0, 5)
 		.name("LOD Quality Ratio")

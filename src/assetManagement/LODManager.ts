@@ -10,6 +10,8 @@ export class LODManager {
 	private _trackedLODs: Set<TrackedLOD> = new Set();
 	private _globalQuality: number = 1.0;
 	private _camera: PerspectiveCamera;
+	private _LOD_QUALITY_MIN = 0.01;
+	private _LOD_QUALITY_MAX = 5;
 
 	constructor(camera: PerspectiveCamera) {
 		this._camera = camera;
@@ -20,7 +22,10 @@ export class LODManager {
 	}
 
 	public setQuality(new_globalQuality: number) {
-		this._globalQuality = new_globalQuality;
+		this._globalQuality = Math.min(
+			Math.max(new_globalQuality, this._LOD_QUALITY_MIN),
+			this._LOD_QUALITY_MAX,
+		);
 		this.updateAll();
 	}
 

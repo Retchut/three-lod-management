@@ -16,6 +16,7 @@ import {
 import type { AssetManager } from "../assetManagement/AssetManager";
 import type { AssetSpawner } from "../assetManagement/AssetSpawner";
 import type { LODManager } from "../assetManagement/LODManager";
+import type { PerformanceManager } from "../performanceManagement/PerformanceManager";
 
 export type AppContext = {
 	renderer: WebGPURenderer;
@@ -24,6 +25,7 @@ export type AppContext = {
 	assetManager: AssetManager;
 	assetSpawner: AssetSpawner;
 	lodManager: LODManager;
+	performanceManager: PerformanceManager;
 };
 
 export abstract class BaseScene {

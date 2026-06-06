@@ -10,6 +10,7 @@ import { AssetSpawner } from "./assetManagement/AssetSpawner";
 import { initUI } from "./ui/uiPanels";
 import { SceneManager } from "./scenes/SceneManager";
 import { LODManager } from "./assetManagement/LODManager";
+import { PerformanceManager } from "./performanceManagement/PerformanceManager";
 
 // performance monitoring
 // TODO: test mem stats panel on chromium - run w/ `--enable-precise-memory-info`
@@ -40,6 +41,7 @@ controls.autoForward = false;
 controls.dragToLook = true;
 
 const lodManager = new LODManager(camera);
+const performanceManager = new PerformanceManager(lodManager, 60);
 const assetManager: AssetManager = new AssetManager();
 const assetSpawner: AssetSpawner = new AssetSpawner(assetManager, lodManager);
 await assetManager.loadGLTF(
@@ -59,18 +61,20 @@ const ctx: AppContext = {
 	assetManager: assetManager,
 	assetSpawner: assetSpawner,
 	lodManager: lodManager,
+	performanceManager: performanceManager,
 };
 const sceneManager = new SceneManager();
 await sceneManager.loadScene(new SimpleScene(), ctx);
 initUI(ctx, sceneManager);
 
-let lastRenderTime: number = 0;
+let lastRenderTime: number | null = null;
 function renderloop(time: number) {
-	const deltaTime = (time - lastRenderTime) / 1000;
+	const deltatimeSec = lastRenderTime === null ? 0 : (time - lastRenderTime) / 1000;
 	lastRenderTime = time;
 	statObjs.forEach((stats: Stats) => stats.begin());
-	sceneManager.update(deltaTime, ctx);
-	controls.update(deltaTime);
+	sceneManager.update(deltatimeSec, ctx);
+	controls.update(deltatimeSec);
+	performanceManager.update(lastRenderTime === null ? null : deltatimeSec);
 	statObjs.forEach((stats: Stats) => stats.end());
 }
 renderer.setAnimationLoop(renderloop);
