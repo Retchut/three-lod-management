@@ -9,7 +9,6 @@ import { AssetManager } from "./assetManagement/AssetManager";
 import { AssetSpawner } from "./assetManagement/AssetSpawner";
 import { getDebugStatsUI, getSceneUI, getSpawnUI } from "./ui/uiPanels";
 import { SceneManager } from "./scenes/SceneManager";
-import { context } from "three/tsl";
 
 // performance monitoring
 // TODO: test mem stats panel on chromium - run w/ `--enable-precise-memory-info`
