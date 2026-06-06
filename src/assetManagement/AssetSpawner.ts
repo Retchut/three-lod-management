@@ -1,11 +1,15 @@
 import { LOD, Vector3, type Group, type Object3D } from "three/webgpu";
 import type { AssetManager, LoadedGLTF } from "./AssetManager";
+import type { LODManager } from "./LODManager";
 
 export class AssetSpawner {
 	private _manager: AssetManager;
+	private _lodManager: LODManager;
+	private _BASE_LOD_DIST: number = 20;
 
-	constructor(assetCache: AssetManager) {
-		this._manager = assetCache;
+	constructor(assetManager: AssetManager, lodManager: LODManager) {
+		this._manager = assetManager;
+		this._lodManager = lodManager;
 	}
 
 	private getRandomVal(maxSpread: number): number {
@@ -72,13 +76,19 @@ export class AssetSpawner {
 		return instance;
 	}
 
-	private spawnLODs(lods: Object3D[], parent: Group, position: Vector3): Object3D {
+	private spawnLODs(
+		lods: Object3D[],
+		parent: Group,
+		position: Vector3,
+		lodQuality: number,
+	): Object3D {
 		const lodObj: LOD = new LOD();
 		lods.forEach((level: Object3D, i: number) => {
-			lodObj.addLevel(level.clone(true), i * 10, 0.1);
+			lodObj.addLevel(level.clone(true), i * this._BASE_LOD_DIST, 0.1);
 		});
 		lodObj.position.copy(position);
 		parent.add(lodObj);
+		this._lodManager.register(lodObj, lodQuality);
 		return lodObj;
 	}
 
@@ -131,7 +141,12 @@ export class AssetSpawner {
 			);
 			return null;
 		}
-		return this.spawnLODs(cachedData.variants[resolvedID], parent, position);
+		return this.spawnLODs(
+			cachedData.variants[resolvedID],
+			parent,
+			position,
+			cachedData.objectQuality,
+		);
 	}
 
 	public spawnRandom(
@@ -160,6 +175,7 @@ export class AssetSpawner {
 				cachedData.variants[resolvedID],
 				parent,
 				this.getRandomPos(maxSpread),
+				cachedData.objectQuality,
 			);
 			spawnedObjects.push(instance);
 		}

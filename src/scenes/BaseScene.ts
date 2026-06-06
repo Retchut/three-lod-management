@@ -15,6 +15,7 @@ import {
 } from "three/webgpu";
 import type { AssetManager } from "../assetManagement/AssetManager";
 import type { AssetSpawner } from "../assetManagement/AssetSpawner";
+import type { LODManager } from "../assetManagement/LODManager";
 
 export type AppContext = {
 	renderer: WebGPURenderer;
@@ -22,6 +23,7 @@ export type AppContext = {
 	camControls: Controls; // mayhaps allow me to switch back to orbit controls later down the line? mmm?
 	assetManager: AssetManager;
 	assetSpawner: AssetSpawner;
+	lodManager: LODManager;
 };
 
 export abstract class BaseScene {
