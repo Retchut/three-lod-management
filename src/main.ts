@@ -1,10 +1,16 @@
 import "./style.css";
 import Stats from "stats.js";
 import { PerspectiveCamera, WebGPURenderer } from "three/webgpu";
-import { OrbitControls } from "three/examples/jsm/Addons.js";
-import { SimpleScene } from "./scenes/Simple";
+import { FlyControls } from "three/examples/jsm/Addons.js";
 import type { AppContext } from "./scenes/BaseScene";
+import { SimpleScene } from "./scenes/Simple";
 import { RandomizedScene } from "./scenes/Randomized";
+import { AssetManager } from "./assetManagement/AssetManager";
+import { AssetSpawner } from "./assetManagement/AssetSpawner";
+import { initUI } from "./ui/uiPanels";
+import { SceneManager } from "./scenes/SceneManager";
+import { LODManager } from "./assetManagement/LODManager";
+import { PerformanceManager } from "./performanceManagement/PerformanceManager";
 
 // performance monitoring
 // TODO: test mem stats panel on chromium - run w/ `--enable-precise-memory-info`
@@ -28,27 +34,49 @@ const camera: PerspectiveCamera = new PerspectiveCamera(
 	1000,
 );
 
-const controls: OrbitControls = new OrbitControls(camera, renderer.domElement);
+const controls: FlyControls = new FlyControls(camera, renderer.domElement);
+controls.movementSpeed = 5;
+controls.rollSpeed = (Math.PI / 24) * 10;
+controls.autoForward = false;
+controls.dragToLook = true;
+
+const lodManager = new LODManager(camera);
+const performanceManager = new PerformanceManager(lodManager, 60);
+const assetManager: AssetManager = new AssetManager();
+const assetSpawner: AssetSpawner = new AssetSpawner(assetManager, lodManager);
+await assetManager.loadGLTF(
+	"tree",
+	"lod_tree/tree_decimating_modifiers_applied.glb",
+	[
+		["Tree", "Tree002", "Tree004", "Tree006"],
+		["Tree001", "Tree003", "Tree005", "Tree007"],
+	],
+	0.5,
+);
 
 const ctx: AppContext = {
 	renderer: renderer,
 	camera: camera,
 	camControls: controls,
+	assetManager: assetManager,
+	assetSpawner: assetSpawner,
+	lodManager: lodManager,
+	performanceManager: performanceManager,
 };
+const sceneManager = new SceneManager();
+await sceneManager.loadScene(new SimpleScene(), ctx);
+initUI(ctx, sceneManager);
 
-// let currentScene = new SimpleScene();
-let currentScene = new RandomizedScene();
-await currentScene.load(ctx);
-
-let lastRenderTime: number = 0;
+let lastRenderTime: number | null = null;
 function renderloop(time: number) {
-	const deltaTime = (time - lastRenderTime) / 1000;
+	const deltatimeSec = lastRenderTime === null ? 0 : (time - lastRenderTime) / 1000;
 	lastRenderTime = time;
 	statObjs.forEach((stats: Stats) => stats.begin());
-	if (currentScene.isLoaded()) {
-		currentScene.update(deltaTime, ctx);
-		renderer.render(currentScene.getScene(), camera);
-	}
+	sceneManager.update(deltatimeSec, ctx);
+	controls.update(deltatimeSec);
+	performanceManager.update(lastRenderTime === null ? null : deltatimeSec);
 	statObjs.forEach((stats: Stats) => stats.end());
 }
 renderer.setAnimationLoop(renderloop);
+
+// setTimeout(() => currentScene.dispose(), 2000); // we do a little dispose testing

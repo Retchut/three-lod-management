@@ -1,36 +1,5 @@
-import { AmbientLight, Color, DirectionalLight, Group, Object3D, Vector3 } from "three/webgpu";
+import { AmbientLight, Color, DirectionalLight, Object3D, Vector3 } from "three/webgpu";
 import { BaseScene, type AppContext } from "./BaseScene";
-import { GLTFLoader, type GLTF } from "three/examples/jsm/Addons.js";
-
-// ------------------------------------------------------------------
-// TODO: extract into AssetManager module
-async function loadModels() {
-	const loader: GLTFLoader = new GLTFLoader();
-	const gltf: GLTF = await loader.loadAsync("models/realistic_tree/scene.gltf");
-	const treeVariants = [];
-	const tree0 = gltf.scene.getObjectByName("Tree_0");
-	const tree1 = gltf.scene.getObjectByName("Tree001_1");
-	if (tree0) treeVariants.push(tree0);
-	if (tree1) treeVariants.push(tree1);
-
-	return treeVariants;
-}
-
-function placeRandom(parent: Group, count: number, variants: Object3D[]) {
-	if (variants.length == 0) {
-		console.error(
-			"Attempting to place random objects, but received an empty variants vector. Aborting...",
-		);
-		return;
-	}
-	for (let i = 0; i < count; i++) {
-		const randIdx: number = Math.floor(Math.random() * variants.length);
-		const instance: Object3D = variants[randIdx].clone(true);
-		instance.position.set((Math.random() - 0.5) * 50, 0, (Math.random() - 0.5) * 50);
-		parent.add(instance);
-	}
-}
-// ------------------------------------------------------------------
 
 export class RandomizedScene extends BaseScene {
 	constructor() {
@@ -40,15 +9,16 @@ export class RandomizedScene extends BaseScene {
 	protected setupLighting(): void {
 		this.scene.background = new Color(0xc6cfce);
 		const ambient = new AmbientLight(0xffffff, 1);
+		ambient.name = "light:ambient0";
 		const dirLight = new DirectionalLight(0xffffff, 2);
+		dirLight.name = "light:directional0";
 		dirLight.position.set(5, 10, 5);
 		this.scene.add(ambient);
 		this.scene.add(dirLight);
 	}
 
-	protected async setupGeometry(): Promise<void> {
-		const variants: Object3D[] = await loadModels();
-		placeRandom(this.root, 10, variants);
+	protected async setupGeometry(context: AppContext): Promise<void> {
+		const trees: Object3D[] = context.assetSpawner.spawnRandom(this.root, "tree", 10, 50, -1);
 	}
 
 	public update(deltaTime: number, context: AppContext): void {
