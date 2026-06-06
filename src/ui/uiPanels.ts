@@ -19,7 +19,7 @@ const getVariantIdxArray = (assetManager: AssetManager, assetID: string) => {
 	return [...Array(getAssetVariants(assetManager, assetID)?.length).keys()];
 };
 
-export function getSceneUI(ctx: AppContext, sceneManager: SceneManager) {
+function getSceneUI(ctx: AppContext, sceneManager: SceneManager) {
 	const sceneControls = gui.addFolder("Scene Controls");
 	const selectedParams = {
 		sceneType: "",
@@ -68,7 +68,7 @@ export function getSceneUI(ctx: AppContext, sceneManager: SceneManager) {
 	checkLoadBtnEnable();
 }
 
-export function getLODUI(ctx: AppContext) {
+function getLODUI(ctx: AppContext) {
 	const lodControls = gui.addFolder("LOD Quality Controls");
 	const selectedParams = {
 		lodQuality: 1,
@@ -83,7 +83,7 @@ export function getLODUI(ctx: AppContext) {
 	const applybtn = lodControls.add(selectedParams, "apply").name("Apply").disable();
 }
 
-export function getSpawnUI(ctx: AppContext, sceneManager: SceneManager) {
+function getSpawnUI(ctx: AppContext, sceneManager: SceneManager) {
 	let currentScene: BaseScene | null = sceneManager.getCurrentScene();
 	const { assetManager, assetSpawner } = ctx;
 	const spawnControls = gui.addFolder("Spawn Controls");
@@ -186,7 +186,7 @@ export function getSpawnUI(ctx: AppContext, sceneManager: SceneManager) {
 	updateSpawnButtonEnabled(selectedParams.assetID, selectedParams.assetVariant);
 }
 
-export function getDebugStatsUI(ctx: AppContext) {
+function getDebugStatsUI(ctx: AppContext) {
 	const statsFolder = gui.addFolder("Debug Stats");
 	const camFolder = statsFolder.addFolder("Camera Stats");
 	const memoryFolder = statsFolder.addFolder("Memory Stats").close();
@@ -201,4 +201,11 @@ export function getDebugStatsUI(ctx: AppContext) {
 	camFolder.add(ctx.camera.position, "z").decimals(3).disable().listen();
 	aggregateMetrics(memoryFolder, ctx.renderer.info.memory);
 	aggregateMetrics(renderFolder, ctx.renderer.info.render);
+}
+
+export function initUI(ctx: AppContext, sceneManager: SceneManager) {
+	getSceneUI(ctx, sceneManager);
+	getLODUI(ctx);
+	getSpawnUI(ctx, sceneManager);
+	getDebugStatsUI(ctx);
 }
