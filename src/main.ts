@@ -4,7 +4,6 @@ import { PerspectiveCamera, WebGPURenderer } from "three/webgpu";
 import { FlyControls } from "three/examples/jsm/Addons.js";
 import type { AppContext } from "./scenes/BaseScene";
 import { SimpleScene } from "./scenes/Simple";
-import { RandomizedScene } from "./scenes/Randomized";
 import { AssetManager } from "./assetManagement/AssetManager";
 import { AssetSpawner } from "./assetManagement/AssetSpawner";
 import { initUI } from "./ui/uiPanels";
