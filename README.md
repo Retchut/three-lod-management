@@ -1,11 +1,24 @@
-## How to run
+# Three LOD Management Example Application
 
-Run the `fetchModels.sh` script first, which will fetch the referenced models in the code from a public dropbox folder, and place them in the correct location.
-Then either:
+## Guides
+
+### Asset fetching
+
+Before developing or running the application, run the `scripts/fetchModels.sh` script first, which will fetch the referenced models in the code from a public dropbox folder, and place them in the correct location.
+
+### Running
+
+To run the application, either:
 
 - run with the docker-compose config file: `docker-compose -f docker-compose.yaml up`
 - build and run the provided Dockerfile: `docker build -t three-lods -f Dockerfile . && docker run -p 5173:5173 three-lods`
 - install dependencies and run with your package manager of choice: (npm example) `npm install && npm run dev`
+
+### Development
+
+Run `scripts/setupGithooks.sh` to correctly set the current git hooks.
+
+To run the app I recommend using the provided debug docker-compose config file: `docker-compose.debug.yaml`
 
 ## Assets used
 

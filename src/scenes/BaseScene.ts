@@ -101,7 +101,7 @@ export abstract class BaseScene {
 	// --------------------------
 
 	// ----- runtime -----
-	public update(deltaTime: number, context: AppContext): void {}
+	public update(_deltaTime: number, _context: AppContext): void {}
 	// -------------------
 
 	// ----- cleanup -----

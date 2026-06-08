@@ -1,4 +1,4 @@
-import { AmbientLight, Color, DirectionalLight, Object3D, Vector3 } from "three/webgpu";
+import { AmbientLight, Color, DirectionalLight, Vector3 } from "three/webgpu";
 import { BaseScene, type AppContext } from "./BaseScene";
 
 export class RandomizedScene extends BaseScene {
@@ -18,7 +18,7 @@ export class RandomizedScene extends BaseScene {
 	}
 
 	protected async setupGeometry(context: AppContext): Promise<void> {
-		const trees: Object3D[] = context.assetSpawner.spawnRandom(this.root, "tree", 10, 50, -1);
+		context.assetSpawner.spawnRandom(this.root, "tree", 10, 50, -1);
 	}
 
 	public update(deltaTime: number, context: AppContext): void {

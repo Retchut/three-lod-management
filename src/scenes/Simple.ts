@@ -5,7 +5,6 @@ import {
 	DirectionalLight,
 	Mesh,
 	MeshBasicMaterial,
-	Object3D,
 	Vector3,
 } from "three/webgpu";
 import { BaseScene, type AppContext } from "./BaseScene";

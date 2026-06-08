@@ -1,7 +1,6 @@
 import GUI, { Controller } from "lil-gui";
 import { Vector3 } from "three/webgpu";
 import { AssetManager } from "../assetManagement/AssetManager";
-import { AssetSpawner } from "../assetManagement/AssetSpawner";
 import type { AppContext, BaseScene } from "../scenes/BaseScene";
 import type { SceneManager } from "../scenes/SceneManager";
 import { SimpleScene } from "../scenes/Simple";
@@ -117,11 +116,11 @@ function getSpawnUI(ctx: AppContext, sceneManager: SceneManager) {
 		randomPos: false,
 		randomSpread: 0,
 		spawnCallback: () => {
+			currentScene = sceneManager.getCurrentScene();
 			if (currentScene == null) {
 				console.error(`[getSpawnUI] No scene to spawn objects into. Aborting...`);
 				return;
 			}
-			currentScene = sceneManager.getCurrentScene();
 
 			const variantNum = getAssetVariants(assetManager, selectedParams.assetID)?.length;
 			if (variantNum == null) {
