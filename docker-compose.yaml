@@ -1,0 +1,14 @@
+version: "3"
+
+# for now this config does the trick, but I'll want a separate dockerfile that builds an optimized app later
+#   so effectively, the only difference between this and the debug config is that it lacks the volumes
+services:
+  three-lods:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile-dev
+    container_name: three-lod-manager
+    ports:
+      - "5173:5173"
+    networks:
+      - default
