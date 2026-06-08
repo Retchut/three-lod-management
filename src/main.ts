@@ -11,6 +11,36 @@ import { SceneManager } from "./scenes/SceneManager";
 import { LODManager } from "./assetManagement/LODManager";
 import { PerformanceManager } from "./performanceManagement/PerformanceManager";
 
+const hideLoadScreen = () => {
+	const initLoadScreen: HTMLElement | null = document.querySelector("#init-load-screen");
+	if (!initLoadScreen) {
+		console.error(
+			"[main.ts] Attempted to hide the loading screen, but was unable to locate its HTMLElement.",
+		);
+		return;
+	}
+
+	// the transition is set for 1s, check the variable in style.css
+	initLoadScreen.classList.add("fadeout");
+	setTimeout(() => initLoadScreen.remove(), 1000);
+};
+
+const getWindowRatio: () => number = () => window.innerWidth / window.innerHeight;
+const updateRendererSize = (renderer: WebGPURenderer) =>
+	renderer.setSize(window.innerWidth, window.innerHeight);
+
+const resizeWindow = (ctx: AppContext) => {
+	if (camera.isPerspectiveCamera) {
+		camera.aspect = getWindowRatio();
+		camera.updateProjectionMatrix();
+	} else {
+		console.warn(
+			"[main.ts] Attempted to resize window with a non-perspective camera. No other camera types are supported as of now. The camera won't be resized, but the renderer will still be updated.",
+		);
+	}
+	updateRendererSize(ctx.renderer);
+};
+
 // performance monitoring
 // TODO: test mem stats panel on chromium - run w/ `--enable-precise-memory-info`
 const statObjs = [new Stats(), new Stats(), new Stats()];
@@ -23,15 +53,10 @@ statObjs.forEach((stats: Stats, i: number) => {
 });
 
 const renderer: WebGPURenderer = new WebGPURenderer();
-renderer.setSize(window.innerWidth, window.innerHeight);
+updateRendererSize(renderer);
 document.body.appendChild(renderer.domElement);
 
-const camera: PerspectiveCamera = new PerspectiveCamera(
-	75,
-	window.innerWidth / window.innerHeight,
-	0.1,
-	1000,
-);
+const camera: PerspectiveCamera = new PerspectiveCamera(75, getWindowRatio(), 0.1, 1000);
 
 const controls: FlyControls = new FlyControls(camera, renderer.domElement);
 controls.movementSpeed = 5;
@@ -65,6 +90,7 @@ const ctx: AppContext = {
 const sceneManager = new SceneManager();
 await sceneManager.loadScene(new SimpleScene(), ctx);
 initUI(ctx, sceneManager);
+hideLoadScreen();
 
 let lastRenderTime: number | null = null;
 function renderloop(time: number) {
@@ -77,5 +103,6 @@ function renderloop(time: number) {
 	statObjs.forEach((stats: Stats) => stats.end());
 }
 renderer.setAnimationLoop(renderloop);
+window.addEventListener("resize", () => resizeWindow(ctx), false);
 
 // setTimeout(() => currentScene.dispose(), 2000); // we do a little dispose testing

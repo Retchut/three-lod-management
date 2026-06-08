@@ -1,3 +1,50 @@
+:root {
+	--bg-color: rgba(25, 25, 25, 0.7);
+	--loading-transition-duration: 1s;
+	/* 	the z index for lil-gui is by default 1002 and for stats.js 10000 */
+	--loading-z-index: 10001;
+	--spinner-rot-duration: 0.75s;
+	--spinner-bg-color: rgb(50, 50, 50);
+	--spinner-highlight-color: red;
+}
+
 body {
 	margin: 0;
+}
+
+.loading-screen {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	background-color: var(--bg-color);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: var(--loading-z-index);
+	transition: opacity var(--loading-transition-duration) ease;
+}
+
+.spinner {
+	width: 50px;
+	height: 50px;
+	border: 5px solid var(--spinner-bg-color);
+	border-top: 5px solid var(--spinner-highlight-color);
+	border-radius: 50%;
+	animation: spin var(--spinner-rot-duration) linear infinite;
+}
+
+@keyframes spin {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+.fadeout {
+	opacity: 0;
+	pointer-events: none;
 }
