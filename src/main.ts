@@ -11,6 +11,20 @@ import { SceneManager } from "./scenes/SceneManager";
 import { LODManager } from "./assetManagement/LODManager";
 import { PerformanceManager } from "./performanceManagement/PerformanceManager";
 
+const hideLoadScreen = () => {
+	const initLoadScreen: HTMLElement | null = document.querySelector("#init-load-screen");
+	if (!initLoadScreen) {
+		console.error(
+			"[main.ts] Attempted to hide the loading screen, but was unable to locate its HTMLElement.",
+		);
+		return;
+	}
+
+	// the transition is set for 1s, check the variable in style.css
+	initLoadScreen.classList.add("fadeout");
+	setTimeout(() => initLoadScreen.remove(), 1000);
+};
+
 // performance monitoring
 // TODO: test mem stats panel on chromium - run w/ `--enable-precise-memory-info`
 const statObjs = [new Stats(), new Stats(), new Stats()];
@@ -65,6 +79,7 @@ const ctx: AppContext = {
 const sceneManager = new SceneManager();
 await sceneManager.loadScene(new SimpleScene(), ctx);
 initUI(ctx, sceneManager);
+hideLoadScreen();
 
 let lastRenderTime: number | null = null;
 function renderloop(time: number) {

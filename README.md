@@ -111,7 +111,8 @@ The following objectives are on hold until I manage to compose a more realistic 
 
 ### Features
 
-- [ ] app loading visual feedback
+- [x] app loading visual feedback
+  - [ ] show this feedback once again when loading heavy scenes (requires heavy scenes)
 - [ ] handle window resizing
 - [x] scene router
 - [x] deploy the app somewhere (makes testing across devices easier)
