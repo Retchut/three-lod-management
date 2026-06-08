@@ -1,11 +1,11 @@
 version: "3"
 
 services:
-  three-lods:
+  three-lods-debug:
     build:
       context: ./
       dockerfile: ./Dockerfile-dev
-    container_name: three-lod-manager
+    container_name: three-lod-manager-debug
     ports:
       - "5173:5173"
     volumes:

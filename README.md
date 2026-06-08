@@ -2,7 +2,7 @@
 
 The application is deployed [over here](https://three-lod-management.vercel.app).
 
-If you're interested in running it locally or working on it, read on.
+If you're interested in running it locally or working on it, read on. Whichever the case may be, the application will be exposed at [http://localhost:5173](http://localhost:5173)
 
 ## Guides
 
