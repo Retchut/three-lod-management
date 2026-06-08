@@ -1,0 +1,34 @@
+#!/bin/sh
+
+echo -e "Running linters and formatters...\n"
+
+# check npx executable based on the OS
+case $(uname) in
+    *CYGWIN* | *MINGW* | *MSYS*)
+        NPX=npx.cmd ;; # Windows
+    *)
+        NPX=npx ;; # Unix
+esac
+
+echo -e "Running Prettier..."
+$NPX prettier --check .
+
+if [ $? = 0 ]; then
+    echo -e "Prettier OK.\n"
+    echo -e "All checks passed. Committing...\n"
+else
+    echo -e "\nPrettier failed while commiting - run the format script to fix it.\n"
+    echo -e "Aborting..."
+    exit 1
+fi
+
+echo -e "Linting..."
+$NPX tsc --noEmit
+
+if [ $? != 0 ]; then
+    echo -e "Linting returned errors.\n"
+    echo -e "Aborting..."
+    exit 1
+fi
+
+echo -e "Linting OK.\n"
