@@ -97,11 +97,13 @@ export class BlendedLOD extends LOD {
 			this.resetMaterialState(levelIDs[0]);
 			return;
 		}
+		// TODO: this is very naive and gives odd results for  the dithering in opaque objects. I should use an easing function instead of what I'm currently doing
 		this.setMaterialsBlend(levelIDs[0], 1 - blendPercent, true);
 		this.setMaterialsBlend(levelIDs[1], blendPercent, true);
 	}
 
 	private setMaterialsBlend(lodID: number, opacity: number, transparent: boolean) {
+		// TODO: allow selecting the blending mode: 1) blend transparent only | 2) blend transparent with opacity + opaque dithering | 3) blend transparent and opaque with dithering
 		this.setMaterialsState(lodID, (state: LODMaterialState) => ({
 			transparent: state.originalTransparent ? transparent : false,
 			opacity,

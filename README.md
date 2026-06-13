@@ -1,6 +1,6 @@
 # Three LOD Management Example Application
 
-The application is deployed [over here](https://three-lod-management.vercel.app).
+The application is deployed [over here](https://three-LOD-management.vercel.app).
 
 If you're interested in running it locally or working on it, read on. Whichever the case may be, the application will be exposed at [http://localhost:5173](http://localhost:5173)
 
@@ -15,7 +15,7 @@ Before developing or running the application, run the `scripts/fetchModels.sh` s
 To run the application, either:
 
 - run with the docker-compose config file: `docker-compose -f docker-compose.yaml up`
-- build and run the provided Dockerfile: `docker build -t three-lods -f Dockerfile . && docker run -p 5173:5173 three-lods`
+- build and run the provided Dockerfile: `docker build -t three-LODs -f Dockerfile . && docker run -p 5173:5173 three-LODs`
 - install dependencies and run with your package manager of choice: (npm example) `npm install && npm run dev`
 
 ### Development
@@ -71,15 +71,18 @@ Texture resolution was reduced by a factor of 2 in each level with imagemagick.
     - [x] spawning entities
     - [x] selecting from loaded entities
   - [x] scene selection
-  - [x] lod quality controls
-- [x] lod implementation
+  - [x] LOD quality controls
+    - [ ] allow disabling PerformanceManager adjustments, for testing
+    - [ ] select LOD transitioning method
+- [x] LOD implementation
   - [x] generate LODs (not on code)
-  - [x] load lods into cache
-  - [x] swap between lods based on distance
+  - [x] load LODs into cache
+  - [x] swap between LODs based on distance
   - [x] verify histeresis
-  - [ ] reduce lod distance based on device specs, on first load (need to test on at least a couple of devices first though)
-  - [ ] visual blend between lod versions
-  - [x] reduce lod distance based on hit to fps
+  - [ ] reduce LOD distance based on device specs, on first load (need to test on at least a couple of devices first though)
+  - [x] visual blend between LOD versions
+    - [ ] tweak blend algorithm to use an easing function for assigning the opacity to the fading in and out level
+  - [x] reduce LOD distance based on hit to fps
   - [ ] dynamically adjust performance based on recent modifications and recent performance history
     - [ ] increase/decrease adjustment interval
     - [ ] increase/decrease adjustment values
@@ -87,7 +90,7 @@ Texture resolution was reduced by a factor of 2 in each level with imagemagick.
 ### Optimizations
 
 - [ ] Use InstancedMeshes when spawning objects into the scene
-- [ ] Use the same material and swap out textures when transitioning between lods (this might help with blending later on as well)
+- [ ] Use the same material and swap out textures when transitioning between LODs (this might help with blending later on as well)
 
 ### Testing
 
