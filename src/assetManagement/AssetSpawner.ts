@@ -1,6 +1,7 @@
-import { LOD, Vector3, type Group, type Object3D } from "three/webgpu";
+import { Vector3, type Group, type Object3D } from "three/webgpu";
 import type { AssetManager, LoadedGLTF } from "./AssetManager";
 import type { LODManager } from "./LODManager";
+import { BlendedLOD } from "../components/BlendedLOD";
 
 export class AssetSpawner {
 	private _manager: AssetManager;
@@ -82,7 +83,7 @@ export class AssetSpawner {
 		position: Vector3,
 		lodQuality: number,
 	): Object3D {
-		const lodObj: LOD = new LOD();
+		const lodObj: BlendedLOD = new BlendedLOD();
 		lods.forEach((level: Object3D, i: number) => {
 			lodObj.addLevel(level.clone(true), i * this._BASE_LOD_DIST, 0.1);
 		});
