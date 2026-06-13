@@ -78,7 +78,6 @@ export class BlendedLOD extends LOD {
 				this._currentLevel = [i - 1, i];
 				blendPercent = (distance - blendStart) / (blendEnd - blendStart);
 				break;
-			} else {
 			}
 		}
 
@@ -87,7 +86,7 @@ export class BlendedLOD extends LOD {
 			levels[i].object.visible = levelVisible;
 			if (!levelVisible) this.resetMaterialState(i);
 		}
-		this.applyBlend(this._currentLevel, blendPercent); // blend remaining levels
+		this.applyBlend(this._currentLevel, blendPercent); // blend just the remaining levels
 	}
 
 	private applyBlend(levelIDs: number[], blendPercent: number) {
@@ -95,25 +94,31 @@ export class BlendedLOD extends LOD {
 			this.resetMaterialState(levelIDs[0]);
 			return;
 		}
-		this.setMaterialsState(levelIDs[0], 1 - blendPercent, true);
-		this.setMaterialsState(levelIDs[1], blendPercent, true);
+		this.setMaterialsBlend(levelIDs[0], 1 - blendPercent, true);
+		this.setMaterialsBlend(levelIDs[1], blendPercent, true);
+	}
+
+	private setMaterialsBlend(lodID: number, opacity: number, transparent: boolean) {
+		this.setMaterialsState(lodID, (state: LODMaterialState) => ({
+			transparent: state.originalTransparent ? transparent : state.originalTransparent,
+			opacity: state.originalTransparent ? opacity : state.originalOpacity,
+		}));
 	}
 
 	private resetMaterialState(lodID: number) {
-		const matStates: LODMaterialState[] | undefined = this._levelMats.get(lodID);
-		if (matStates === undefined) {
-			console.error(
-				`[BlendedLOD] Attempted to reset the material state for LOD ${lodID}, but no material states were found for this level.`,
-			);
-			return;
-		}
-		matStates.forEach((state: LODMaterialState) => {
-			state.mat.transparent = state.originalTransparent;
-			state.mat.opacity = state.originalOpacity;
-		});
+		this.setMaterialsState(lodID, (state: LODMaterialState) => ({
+			transparent: state.originalTransparent,
+			opacity: state.originalOpacity,
+		}));
 	}
 
-	private setMaterialsState(lodID: number, opacity: number, transparent: boolean) {
+	private setMaterialsState(
+		lodID: number,
+		stateFetcher: (state: LODMaterialState) => {
+			transparent: boolean;
+			opacity: number;
+		},
+	) {
 		const matStates: LODMaterialState[] | undefined = this._levelMats.get(lodID);
 		if (matStates === undefined) {
 			console.error(
@@ -121,12 +126,10 @@ export class BlendedLOD extends LOD {
 			);
 			return;
 		}
-		matStates.forEach((state: LODMaterialState) => {
-			// Added this in order to prevent originally opaque materials from rendering in the same pass as transparent ones
-			if (state.originalTransparent) {
-				state.mat.transparent = transparent;
-				state.mat.opacity = opacity;
-			}
+		matStates.forEach((matState: LODMaterialState) => {
+			const { transparent, opacity } = stateFetcher(matState);
+			matState.mat.transparent = transparent;
+			matState.mat.opacity = opacity;
 		});
 	}
 }
