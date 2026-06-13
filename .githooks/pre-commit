@@ -15,7 +15,6 @@ $NPX prettier --check .
 
 if [ $? = 0 ]; then
     echo -e "Prettier OK.\n"
-    echo -e "All checks passed. Committing...\n"
 else
     echo -e "\nPrettier failed while commiting - run the format script to fix it.\n"
     echo -e "Aborting..."
@@ -32,3 +31,4 @@ if [ $? != 0 ]; then
 fi
 
 echo -e "Linting OK.\n"
+echo -e "All checks passed. Committing...\n"
