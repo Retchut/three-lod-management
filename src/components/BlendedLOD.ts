@@ -16,6 +16,7 @@ type LODMaterialState = {
 	mat: Material;
 	originalOpacity: number;
 	originalTransparent: boolean;
+	originalAlphaHash: boolean;
 };
 
 export class BlendedLOD extends LOD {
@@ -47,6 +48,7 @@ export class BlendedLOD extends LOD {
 					mat: mat,
 					originalOpacity: mat.opacity,
 					originalTransparent: mat.transparent,
+					originalAlphaHash: mat.alphaHash,
 				});
 			});
 		});
@@ -78,6 +80,7 @@ export class BlendedLOD extends LOD {
 				this._currentLevel = [i - 1, i];
 				blendPercent = (distance - blendStart) / (blendEnd - blendStart);
 				break;
+			} else {
 			}
 		}
 
@@ -100,8 +103,9 @@ export class BlendedLOD extends LOD {
 
 	private setMaterialsBlend(lodID: number, opacity: number, transparent: boolean) {
 		this.setMaterialsState(lodID, (state: LODMaterialState) => ({
-			transparent: state.originalTransparent ? transparent : state.originalTransparent,
-			opacity: state.originalTransparent ? opacity : state.originalOpacity,
+			transparent: state.originalTransparent ? transparent : false,
+			opacity,
+			alphaHash: state.originalTransparent ? false : true,
 		}));
 	}
 
@@ -109,6 +113,7 @@ export class BlendedLOD extends LOD {
 		this.setMaterialsState(lodID, (state: LODMaterialState) => ({
 			transparent: state.originalTransparent,
 			opacity: state.originalOpacity,
+			alphaHash: state.originalAlphaHash,
 		}));
 	}
 
@@ -117,6 +122,7 @@ export class BlendedLOD extends LOD {
 		stateFetcher: (state: LODMaterialState) => {
 			transparent: boolean;
 			opacity: number;
+			alphaHash: boolean;
 		},
 	) {
 		const matStates: LODMaterialState[] | undefined = this._levelMats.get(lodID);
@@ -127,9 +133,11 @@ export class BlendedLOD extends LOD {
 			return;
 		}
 		matStates.forEach((matState: LODMaterialState) => {
-			const { transparent, opacity } = stateFetcher(matState);
+			const { transparent, opacity, alphaHash } = stateFetcher(matState);
 			matState.mat.transparent = transparent;
 			matState.mat.opacity = opacity;
+			matState.mat.alphaHash = alphaHash;
+			matState.mat.needsUpdate = true; // TODO: this is only really required for materials whose original transparent value was false, as these sometimes fail to blend with the alphahash. Marking every single material for update might get costly, especially after every re-render while blending. I could probably get away with setting this on the first modification of transparent and alphaHash, but then I'd have to figure out a way to run that on the first time that state changes......
 		});
 	}
 }
