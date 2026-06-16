@@ -6,7 +6,7 @@ import {
 	OrthographicCamera,
 	PerspectiveCamera,
 	Vector3,
-} from "three";
+} from "three/webgpu";
 
 // garbage collection optimization shenanigans that LOD.js was already doing. Might as well keep it
 const _v1 = /*@__PURE__*/ new Vector3();
