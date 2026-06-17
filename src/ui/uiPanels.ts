@@ -75,39 +75,57 @@ function getSceneUI(ctx: AppContext, sceneManager: SceneManager) {
 function getLODUI(ctx: AppContext) {
 	const lodControls = gui.addFolder("LOD Quality Controls");
 	const selectedParams = {
-		lodQuality: 1,
+		lodQualitySelector: ctx.lodManager.getQuality(),
 		applyQuality: () => {
-			ctx.lodManager.setQuality(selectedParams.lodQuality);
+			ctx.lodManager.setQuality(selectedParams.lodQualitySelector);
 		},
-		blendMode: ctx.lodManager.getBlendMode(),
+		autoQualityEnabled: ctx.performanceManager.getAutoQualityEnabled(),
+		blendModeSelector: ctx.lodManager.getBlendMode(),
 	};
-	const qualityListener = {
-		get lodQuality() {
+	const appDataListeners = {
+		get appLODQuality() {
 			return ctx.lodManager.getQuality();
 		},
-		get fpsTarget() {
+		get appFPSTarget() {
 			return ctx.performanceManager.getFPSTarget();
 		},
-		get fpsAvg() {
+		get appFPSAvg() {
 			return ctx.performanceManager.getFPSAvg();
 		},
 	};
-	lodControls.add(qualityListener, "fpsTarget").name("FPS Target").listen().decimals(3).disable();
-	lodControls.add(qualityListener, "fpsAvg").name("FPS Average").listen().decimals(3).disable();
+	// automatic controls / displays
 	lodControls
-		.add(qualityListener, "lodQuality")
+		.add(appDataListeners, "appFPSTarget")
+		.name("FPS Target")
+		.listen()
+		.decimals(3)
+		.disable();
+	lodControls.add(appDataListeners, "appFPSAvg").name("FPS Average").listen().decimals(3).disable();
+	lodControls
+		.add(appDataListeners, "appLODQuality")
 		.name("Current quality")
 		.listen()
 		.decimals(3)
-		.onChange((val: number) => (selectedParams.lodQuality = val))
+		.onChange((val: number) => (selectedParams.lodQualitySelector = val))
 		.disable();
+	// manual controls
 	lodControls
-		.add(selectedParams, "lodQuality", 0, 5)
+		.add(selectedParams, "autoQualityEnabled")
+		.name("Auto Quality Enabled")
+		.onChange((autoQualEnabled: boolean) => {
+			ctx.performanceManager.setAutoQualityEnabled(autoQualEnabled);
+			lodQualitySlider.setValue(appDataListeners.appLODQuality);
+			lodQualitySlider.disable(autoQualEnabled);
+			applyQualitybtn.disable(autoQualEnabled);
+		});
+	const lodQualitySlider = lodControls
+		.add(selectedParams, "lodQualitySelector", 0, 5)
 		.name("LOD Quality Ratio")
-		.onChange((val: number) => applyQualitybtn.disable(val == ctx.lodManager.getQuality()));
+		.onChange((val: number) => applyQualitybtn.disable(val == ctx.lodManager.getQuality()))
+		.disable(selectedParams.autoQualityEnabled);
 	const applyQualitybtn = lodControls.add(selectedParams, "applyQuality").name("Apply").disable();
 	lodControls
-		.add(selectedParams, "blendMode", Object.values(LODBlendMode) as LODBlendMode[])
+		.add(selectedParams, "blendModeSelector", Object.values(LODBlendMode) as LODBlendMode[])
 		.name("Blend Mode")
 		.onChange((newMode: LODBlendMode) => ctx.lodManager.setBlendMode(newMode));
 }
