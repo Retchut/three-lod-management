@@ -5,6 +5,7 @@ import {
 	GridHelper,
 	Group,
 	Light,
+	LOD,
 	Material,
 	Mesh,
 	Object3D,
@@ -107,11 +108,12 @@ export abstract class BaseScene {
 	// ----- cleanup -----
 	// TODO: I'll have to review this, as I don't really want to dispose of geometry that is owned by the asset manager, since my
 	//			original idea was to have those assets be usable in other scenes
-	public dispose(): void {
+	public dispose(context: AppContext): void {
 		// TODO: this feels weird, as I'm pretty sure the debug helpers, at the very least, are not instances of the Mesh class,
 		//			so I think I'm missing some cleanup there at least
 		[this.root, this.debugRoot].forEach((rootObj: Object3D) => {
 			rootObj.traverse((obj: Object3D) => {
+				if (obj instanceof LOD) context.lodManager.unregister(obj);
 				if (!(obj instanceof Mesh)) return;
 				const mesh = obj as Mesh;
 				mesh.geometry.dispose();

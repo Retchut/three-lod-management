@@ -14,7 +14,7 @@ export class SceneManager {
 	// --------------------
 
 	public async loadScene(scene: BaseScene, context: AppContext): Promise<void> {
-		if (this._currentScene != null) this._currentScene.dispose();
+		if (this._currentScene != null) this._currentScene.dispose(context);
 
 		this._currentScene = scene;
 		await scene.load(context);

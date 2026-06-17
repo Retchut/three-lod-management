@@ -48,8 +48,4 @@ export class LODSideBySideScene extends BaseScene {
 	public update(deltaTime: number, context: AppContext): void {
 		super.update(deltaTime, context);
 	}
-
-	public dispose(): void {
-		super.dispose();
-	}
 }
