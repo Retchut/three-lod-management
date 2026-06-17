@@ -28,8 +28,8 @@ type LODMaterialState = {
 export class BlendedLOD extends LOD {
 	// already private in LOD.js, but it is only used for the update logic
 	//		no plural because I'd rather overwrite the original variable than keep it around :p
-	private _levelMats: Map<number, LODMaterialState[]> = new Map();
-	private _currentLevel: number[] = [];
+	private _levelMats: Map<Object3D, LODMaterialState[]> = new Map();
+	private _currentLevel: Object3D[] = [];
 	private _blendMode: LODBlendMode = LODBlendMode.OpaqueAlphaHashTransparentBlend;
 
 	constructor() {
@@ -48,21 +48,15 @@ export class BlendedLOD extends LOD {
 	}
 
 	public addLevel(object: Object3D, distance: number = 0, hysteresis: number = 0): this {
-		// TODO: this code assumes that the levels are sorted, but this is only true if we're adding levels sequentially.
-		// 			the moment we start loading levels in different orders (for example, when I implement assynchronous loading
-		// 			of LODs, this will start working.
-		// 			That's why we're first calling super.addLevel, to first to push the object into this.levels
-		//			I need to refactor this so we don't map an id, but instead map a reference to the Object3D object of that level
 		super.addLevel(object, distance, hysteresis);
-		const lodID: number = this.levels.length - 1;
-		this._levelMats.set(lodID, []);
+		const levelMats: LODMaterialState[] = [];
 		// TODO: eerily similar to what we're doing inside BaseScene.dispose. I'm sure I can extract this somehow
 		object.traverse((obj: Object3D) => {
 			if (!(obj instanceof Mesh)) return;
 			const mesh = obj as Mesh;
 			const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
 			mats.forEach((mat: Material) => {
-				this._levelMats.get(lodID)?.push({
+				levelMats.push({
 					mat: mat,
 					original: {
 						opacity: mat.opacity,
@@ -77,6 +71,7 @@ export class BlendedLOD extends LOD {
 				});
 			});
 		});
+		this._levelMats.set(object, levelMats);
 		return this;
 	}
 
@@ -89,7 +84,7 @@ export class BlendedLOD extends LOD {
 		_v2.setFromMatrixPosition(this.matrixWorld);
 
 		let blendPercent = 1; // of upper level
-		this._currentLevel = [this.levels.length - 1]; // fallback if we don't find any LOD within range
+		this._currentLevel = [levels[levels.length - 1].object]; // fallback if we don't find any LOD within range
 		const distance = _v1.distanceTo(_v2) / camera.zoom;
 		// skipping lod0 since its distance is at 0
 		for (let i = 1; i < this.levels.length; i++) {
@@ -98,11 +93,11 @@ export class BlendedLOD extends LOD {
 			const blendEnd = levels[i].distance;
 			const blendStart = blendEnd - blendEnd * levels[i].hysteresis;
 			if (distance <= blendStart) {
-				this._currentLevel = [i - 1];
+				this._currentLevel = [levels[i - 1].object];
 				break;
 			}
 			if (distance > blendStart && distance <= blendEnd) {
-				this._currentLevel = [i - 1, i];
+				this._currentLevel = [levels[i - 1].object, levels[i].object];
 				blendPercent = (distance - blendStart) / (blendEnd - blendStart);
 				break;
 			} else {
@@ -110,24 +105,25 @@ export class BlendedLOD extends LOD {
 		}
 
 		for (let i = 0; i < this.levels.length; i++) {
-			const levelVisible = this._currentLevel.includes(i);
-			levels[i].object.visible = levelVisible;
-			if (!levelVisible) this.resetMaterialState(i);
+			const level = levels[i].object;
+			const levelVisible = this._currentLevel.includes(level);
+			level.visible = levelVisible;
+			if (!levelVisible) this.resetMaterialState(level);
 		}
 		this.applyBlend(this._currentLevel, blendPercent); // blend just the remaining levels
 	}
 
-	private applyBlend(levelIDs: number[], blendPercent: number) {
-		if (levelIDs.length === 1) {
-			this.resetMaterialState(levelIDs[0]);
+	private applyBlend(levels: Object3D[], blendPercent: number) {
+		if (levels.length === 1) {
+			this.resetMaterialState(levels[0]);
 			return;
 		}
 		// TODO: this is very naive and gives odd results for  the dithering in opaque objects. I should use an easing function instead of what I'm currently doing
-		this.setMaterialsBlend(levelIDs[0], 1 - blendPercent);
-		this.setMaterialsBlend(levelIDs[1], blendPercent);
+		this.setMaterialsBlend(levels[0], 1 - blendPercent);
+		this.setMaterialsBlend(levels[1], blendPercent);
 	}
 
-	private setMaterialsBlend(lodID: number, opacity: number) {
+	private setMaterialsBlend(level: Object3D, opacity: number) {
 		let stateBuilder: ((state: LODMaterialState) => BlendState) | null;
 		switch (this._blendMode) {
 			case LODBlendMode.BlendTransparentOnly:
@@ -159,22 +155,25 @@ export class BlendedLOD extends LOD {
 			);
 			return;
 		}
-		this.setMaterialsState(lodID, stateBuilder);
+		this.setMaterialsState(level, stateBuilder);
 	}
 
-	private resetMaterialState(lodID: number) {
-		this.setMaterialsState(lodID, (state: LODMaterialState) => ({
+	private resetMaterialState(level: Object3D) {
+		this.setMaterialsState(level, (state: LODMaterialState) => ({
 			transparent: state.original.transparent,
 			opacity: state.original.opacity,
 			alphaHash: state.original.alphaHash,
 		}));
 	}
 
-	private setMaterialsState(lodID: number, stateBuilder: (state: LODMaterialState) => BlendState) {
-		const matStates: LODMaterialState[] | undefined = this._levelMats.get(lodID);
+	private setMaterialsState(
+		level: Object3D,
+		stateBuilder: (state: LODMaterialState) => BlendState,
+	) {
+		const matStates: LODMaterialState[] | undefined = this._levelMats.get(level);
 		if (matStates === undefined) {
 			console.error(
-				`[BlendedLOD] Attempted to set the material state for LOD ${lodID}, but no material states were found for this level.`,
+				`[BlendedLOD] Attempted to set the material state for '${level.name}', but no material states were found for this level.`,
 			);
 			return;
 		}
