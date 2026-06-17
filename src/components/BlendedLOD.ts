@@ -195,7 +195,7 @@ export class BlendedLOD extends LOD {
 		const opacityChanged: boolean = matState.current.opacity !== nextState.opacity;
 		const alphaHashChanged: boolean = matState.current.alphaHash !== nextState.alphaHash;
 
-		if (!transparentChanged && !opacityChanged && alphaHashChanged) return;
+		if (!transparentChanged && !opacityChanged && !alphaHashChanged) return;
 
 		matState.mat.transparent = nextState.transparent;
 		matState.mat.opacity = nextState.opacity;
