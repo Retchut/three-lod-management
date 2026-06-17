@@ -1,5 +1,12 @@
 import type { LOD, PerspectiveCamera } from "three/webgpu";
+import { BlendedLOD } from "../components/BlendedLOD";
 
+export const LODBlendMode = {
+	OpaqueAlphaHashTransparentBlend: "Alpha Hash Opaque + Blend Transparent",
+	AlphaHashAll: "Alpha Hash All",
+	BlendTransparentOnly: "Blend Transparent Only",
+} as const;
+export type LODBlendMode = (typeof LODBlendMode)[keyof typeof LODBlendMode];
 type TrackedLOD = {
 	lod: LOD;
 	baseDistances: number[];
@@ -12,9 +19,21 @@ export class LODManager {
 	private _camera: PerspectiveCamera;
 	private _LOD_QUALITY_MIN = 0.01;
 	private _LOD_QUALITY_MAX = 5;
+	private _blendMode: LODBlendMode = LODBlendMode.OpaqueAlphaHashTransparentBlend;
 
 	constructor(camera: PerspectiveCamera) {
 		this._camera = camera;
+	}
+
+	public getBlendMode() {
+		return this._blendMode;
+	}
+
+	public setBlendMode(newMode: LODBlendMode): void {
+		if (this._blendMode === newMode) return;
+
+		this._blendMode = newMode;
+		this._trackedLODs.forEach((tracked: TrackedLOD) => this.updateLODBlendMode(tracked.lod));
 	}
 
 	public getQuality() {
@@ -38,6 +57,11 @@ export class LODManager {
 			(d) => d * tracked.qualityScale * this._globalQuality,
 		);
 		this.updateLOD(tracked.lod, newDistances);
+		this.updateLODBlendMode(tracked.lod);
+	}
+
+	private updateLODBlendMode(trackedLOD: LOD) {
+		if (trackedLOD instanceof BlendedLOD) trackedLOD.setBlendMode(this._blendMode);
 	}
 
 	private updateLOD(target: LOD, newDistances: number[]) {

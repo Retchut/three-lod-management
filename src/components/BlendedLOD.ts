@@ -7,13 +7,7 @@ import {
 	PerspectiveCamera,
 	Vector3,
 } from "three/webgpu";
-
-export const LODBlendMode = {
-	OpaqueAlphaHashTransparentBlend: "Alpha Hash Opaque + Blend Transparent",
-	AlphaHashAll: "Alpha Hash All",
-	BlendTransparentOnly: "Blend Transparent Only",
-} as const;
-export type LODBlendMode = (typeof LODBlendMode)[keyof typeof LODBlendMode];
+import { LODBlendMode } from "../assetManagement/LODManager";
 
 // garbage collection optimization shenanigans that LOD.js was already doing. Might as well keep it
 const _v1 = /*@__PURE__*/ new Vector3();
@@ -50,7 +44,7 @@ export class BlendedLOD extends LOD {
 		if (this._blendMode === newMode) return;
 
 		this._blendMode = newMode;
-		// TODO: reload materials, I'll implement it later
+		// TODO: reload materials, I'll implement it later, but it's not a priority since everything will be effectively reset in the next frame
 	}
 
 	public addLevel(object: Object3D, distance: number = 0, hysteresis: number = 0): this {

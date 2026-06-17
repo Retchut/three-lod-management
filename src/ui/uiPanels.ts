@@ -7,6 +7,7 @@ import { SimpleScene } from "../scenes/Simple";
 import { RandomizedScene } from "../scenes/Randomized";
 import { LODDisplayScene } from "../scenes/LODDisplay";
 import { LODSideBySideScene } from "../scenes/LODSideBySide";
+import { LODBlendMode } from "../assetManagement/LODManager";
 
 const gui = new GUI({ title: "LOD Manager Controls" });
 
@@ -75,9 +76,10 @@ function getLODUI(ctx: AppContext) {
 	const lodControls = gui.addFolder("LOD Quality Controls");
 	const selectedParams = {
 		lodQuality: 1,
-		apply: () => {
+		applyQuality: () => {
 			ctx.lodManager.setQuality(selectedParams.lodQuality);
 		},
+		blendMode: ctx.lodManager.getBlendMode(),
 	};
 	const qualityListener = {
 		get lodQuality() {
@@ -102,8 +104,12 @@ function getLODUI(ctx: AppContext) {
 	lodControls
 		.add(selectedParams, "lodQuality", 0, 5)
 		.name("LOD Quality Ratio")
-		.onChange((val: number) => applybtn.disable(val == ctx.lodManager.getQuality()));
-	const applybtn = lodControls.add(selectedParams, "apply").name("Apply").disable();
+		.onChange((val: number) => applyQualitybtn.disable(val == ctx.lodManager.getQuality()));
+	const applyQualitybtn = lodControls.add(selectedParams, "applyQuality").name("Apply").disable();
+	lodControls
+		.add(selectedParams, "blendMode", Object.values(LODBlendMode) as LODBlendMode[])
+		.name("Blend Mode")
+		.onChange((newMode: LODBlendMode) => ctx.lodManager.setBlendMode(newMode));
 }
 
 function getSpawnUI(ctx: AppContext, sceneManager: SceneManager) {
