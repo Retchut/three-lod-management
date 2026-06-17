@@ -8,6 +8,13 @@ import {
 	Vector3,
 } from "three/webgpu";
 
+export const LODBlendMode = {
+	OpaqueAlphaHashTransparentBlend: "Alpha Hash Opaque + Blend Transparent",
+	AlphaHashAll: "Alpha Hash All",
+	BlendTransparentOnly: "Blend Transparent Only",
+} as const;
+export type LODBlendMode = (typeof LODBlendMode)[keyof typeof LODBlendMode];
+
 // garbage collection optimization shenanigans that LOD.js was already doing. Might as well keep it
 const _v1 = /*@__PURE__*/ new Vector3();
 const _v2 = /*@__PURE__*/ new Vector3();
@@ -29,9 +36,21 @@ export class BlendedLOD extends LOD {
 	//		no plural because I'd rather overwrite the original variable than keep it around :p
 	private _levelMats: Map<number, LODMaterialState[]> = new Map();
 	private _currentLevel: number[] = [];
+	private _blendMode: LODBlendMode = LODBlendMode.OpaqueAlphaHashTransparentBlend;
 
 	constructor() {
 		super();
+	}
+
+	public getBlendMode() {
+		return this._blendMode;
+	}
+
+	public setBlendMode(newMode: LODBlendMode): void {
+		if (this._blendMode === newMode) return;
+
+		this._blendMode = newMode;
+		// TODO: reload materials, I'll implement it later
 	}
 
 	public addLevel(object: Object3D, distance: number = 0, hysteresis: number = 0): this {
@@ -110,17 +129,43 @@ export class BlendedLOD extends LOD {
 			return;
 		}
 		// TODO: this is very naive and gives odd results for  the dithering in opaque objects. I should use an easing function instead of what I'm currently doing
-		this.setMaterialsBlend(levelIDs[0], 1 - blendPercent, true);
-		this.setMaterialsBlend(levelIDs[1], blendPercent, true);
+		this.setMaterialsBlend(levelIDs[0], 1 - blendPercent);
+		this.setMaterialsBlend(levelIDs[1], blendPercent);
 	}
 
-	private setMaterialsBlend(lodID: number, opacity: number, transparent: boolean) {
-		// TODO: allow selecting the blending mode: 1) blend transparent only | 2) blend transparent with opacity + opaque dithering | 3) blend transparent and opaque with dithering
-		this.setMaterialsState(lodID, (state: LODMaterialState) => ({
-			transparent: state.original.transparent ? transparent : false,
-			opacity,
-			alphaHash: state.original.transparent ? false : true,
-		}));
+	private setMaterialsBlend(lodID: number, opacity: number) {
+		let stateBuilder: ((state: LODMaterialState) => BlendState) | null;
+		switch (this._blendMode) {
+			case LODBlendMode.BlendTransparentOnly:
+				stateBuilder = (state: LODMaterialState) => ({
+					transparent: state.original.transparent ? true : false,
+					opacity,
+					alphaHash: false,
+				});
+				break;
+			case LODBlendMode.AlphaHashAll:
+				stateBuilder = (_state: LODMaterialState) => ({
+					transparent: false,
+					opacity,
+					alphaHash: true,
+				});
+				break;
+			case LODBlendMode.OpaqueAlphaHashTransparentBlend:
+				stateBuilder = (state: LODMaterialState) => ({
+					transparent: state.original.transparent ? true : false,
+					opacity,
+					alphaHash: state.original.transparent ? false : true,
+				});
+				break;
+		}
+
+		if (stateBuilder === null) {
+			console.error(
+				`[BlendedLOD] Invalid blend mode selected. Unable to calculate the stateBuilder method.`,
+			);
+			return;
+		}
+		this.setMaterialsState(lodID, stateBuilder);
 	}
 
 	private resetMaterialState(lodID: number) {
@@ -131,7 +176,7 @@ export class BlendedLOD extends LOD {
 		}));
 	}
 
-	private setMaterialsState(lodID: number, stateFetcher: (state: LODMaterialState) => BlendState) {
+	private setMaterialsState(lodID: number, stateBuilder: (state: LODMaterialState) => BlendState) {
 		const matStates: LODMaterialState[] | undefined = this._levelMats.get(lodID);
 		if (matStates === undefined) {
 			console.error(
@@ -140,7 +185,7 @@ export class BlendedLOD extends LOD {
 			return;
 		}
 		matStates.forEach((matState: LODMaterialState) => {
-			const nextState: BlendState = stateFetcher(matState);
+			const nextState: BlendState = stateBuilder(matState);
 			this.modifyMaterial(matState, nextState);
 		});
 	}
