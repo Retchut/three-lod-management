@@ -18,7 +18,7 @@ export class RandomizedScene extends BaseScene {
 	}
 
 	protected async setupGeometry(context: AppContext): Promise<void> {
-		context.assetSpawner.spawnRandom(this.root, "tree", 10, 50, -1);
+		context.assetSpawner.spawnLODsRandom(this.root, "tree", 10, 50, -1);
 	}
 
 	public update(deltaTime: number, context: AppContext): void {

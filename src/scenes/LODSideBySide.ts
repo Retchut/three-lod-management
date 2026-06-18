@@ -33,7 +33,7 @@ export class LODSideBySideScene extends BaseScene {
 		cube.position.set(5, 0, 5);
 		this.root.add(cube);
 
-		const trees: Object3D | null = context.assetSpawner.spawnAt(
+		const trees: Object3D | null = context.assetSpawner.spawnLODsAt(
 			this.root,
 			"tree",
 			new Vector3(0, 0, 0),

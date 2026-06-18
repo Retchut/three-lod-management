@@ -160,7 +160,7 @@ function getSpawnUI(ctx: AppContext, sceneManager: SceneManager) {
 				return;
 			}
 			if (selectedParams.randomPos) {
-				assetSpawner.spawnRandom(
+				assetSpawner.spawnLODsRandom(
 					currentScene.getRoot(),
 					selectedParams.assetID,
 					1,
@@ -169,7 +169,7 @@ function getSpawnUI(ctx: AppContext, sceneManager: SceneManager) {
 				);
 				return;
 			}
-			assetSpawner.spawnAt(
+			assetSpawner.spawnLODsAt(
 				currentScene.getRoot(),
 				selectedParams.assetID,
 				new Vector3(selectedParams.x, selectedParams.y, selectedParams.z),
