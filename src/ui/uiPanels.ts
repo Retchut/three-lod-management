@@ -5,7 +5,8 @@ import type { AppContext, BaseScene } from "../scenes/BaseScene";
 import type { SceneManager } from "../scenes/SceneManager";
 import { SimpleScene } from "../scenes/Simple";
 import { RandomizedScene } from "../scenes/Randomized";
-import { LODDisplayScene } from "../scenes/LODDisplay";
+import { LODSideBySideScene } from "../scenes/LODSideBySide";
+import { LODBlendMode } from "../assetManagement/LODManager";
 
 const gui = new GUI({ title: "LOD Manager Controls" });
 
@@ -34,7 +35,7 @@ function getSceneUI(ctx: AppContext, sceneManager: SceneManager) {
 
 	// Note: Scene class names come in the format `<type>Scene`
 	const sceneDropdown = sceneControls
-		.add(selectedParams, "sceneType", ["Simple", "LODDisplay", "Randomized"])
+		.add(selectedParams, "sceneType", ["Simple", "LODSideBySide", "Randomized"])
 		.name("Scene to load")
 		.onChange(checkLoadBtnEnable);
 	const sceneLoadBtn = sceneControls
@@ -47,8 +48,8 @@ function getSceneUI(ctx: AppContext, sceneManager: SceneManager) {
 				case "Simple":
 					newScene = new SimpleScene();
 					break;
-				case "LODDisplay":
-					newScene = new LODDisplayScene();
+				case "LODSideBySide":
+					newScene = new LODSideBySideScene();
 					break;
 				case "Randomized":
 					newScene = new RandomizedScene();
@@ -70,36 +71,59 @@ function getSceneUI(ctx: AppContext, sceneManager: SceneManager) {
 function getLODUI(ctx: AppContext) {
 	const lodControls = gui.addFolder("LOD Quality Controls");
 	const selectedParams = {
-		lodQuality: 1,
-		apply: () => {
-			ctx.lodManager.setQuality(selectedParams.lodQuality);
+		lodQualitySelector: ctx.lodManager.getQuality(),
+		applyQuality: () => {
+			ctx.lodManager.setQuality(selectedParams.lodQualitySelector);
 		},
+		autoQualityEnabled: ctx.performanceManager.getAutoQualityEnabled(),
+		blendModeSelector: ctx.lodManager.getBlendMode(),
 	};
-	const qualityListener = {
-		get lodQuality() {
+	const appDataListeners = {
+		get appLODQuality() {
 			return ctx.lodManager.getQuality();
 		},
-		get fpsTarget() {
+		get appFPSTarget() {
 			return ctx.performanceManager.getFPSTarget();
 		},
-		get fpsAvg() {
+		get appFPSAvg() {
 			return ctx.performanceManager.getFPSAvg();
 		},
 	};
-	lodControls.add(qualityListener, "fpsTarget").name("FPS Target").listen().decimals(3).disable();
-	lodControls.add(qualityListener, "fpsAvg").name("FPS Average").listen().decimals(3).disable();
+	// automatic controls / displays
 	lodControls
-		.add(qualityListener, "lodQuality")
+		.add(appDataListeners, "appFPSTarget")
+		.name("FPS Target")
+		.listen()
+		.decimals(3)
+		.disable();
+	lodControls.add(appDataListeners, "appFPSAvg").name("FPS Average").listen().decimals(3).disable();
+	lodControls
+		.add(appDataListeners, "appLODQuality")
 		.name("Current quality")
 		.listen()
 		.decimals(3)
-		.onChange((val: number) => (selectedParams.lodQuality = val))
+		.onChange((val: number) => (selectedParams.lodQualitySelector = val))
 		.disable();
+	// manual controls
 	lodControls
-		.add(selectedParams, "lodQuality", 0, 5)
+		.add(selectedParams, "autoQualityEnabled")
+		.name("Auto Quality Enabled")
+		.onChange((autoQualEnabled: boolean) => {
+			ctx.performanceManager.setAutoQualityEnabled(autoQualEnabled);
+			lodQualitySlider.setValue(appDataListeners.appLODQuality);
+			lodQualitySlider.disable(autoQualEnabled);
+			applyQualitybtn.disable(autoQualEnabled);
+		});
+	const lodQualitySlider = lodControls
+		.add(selectedParams, "lodQualitySelector", 0, 5)
 		.name("LOD Quality Ratio")
-		.onChange((val: number) => applybtn.disable(val == ctx.lodManager.getQuality()));
-	const applybtn = lodControls.add(selectedParams, "apply").name("Apply").disable();
+		.onChange((val: number) => applyQualitybtn.disable(val == ctx.lodManager.getQuality()))
+		.disable(selectedParams.autoQualityEnabled);
+	const applyQualitybtn = lodControls.add(selectedParams, "applyQuality").name("Apply").disable();
+	lodControls
+		.add(selectedParams, "blendModeSelector", Object.values(LODBlendMode) as LODBlendMode[])
+		.name("Blend Mode")
+		.onChange((newMode: LODBlendMode) => ctx.lodManager.setBlendMode(newMode));
 }
 
 function getSpawnUI(ctx: AppContext, sceneManager: SceneManager) {
@@ -132,7 +156,7 @@ function getSpawnUI(ctx: AppContext, sceneManager: SceneManager) {
 				return;
 			}
 			if (selectedParams.randomPos) {
-				assetSpawner.spawnRandom(
+				assetSpawner.spawnLODsRandom(
 					currentScene.getRoot(),
 					selectedParams.assetID,
 					1,
@@ -141,7 +165,7 @@ function getSpawnUI(ctx: AppContext, sceneManager: SceneManager) {
 				);
 				return;
 			}
-			assetSpawner.spawnAt(
+			assetSpawner.spawnLODsAt(
 				currentScene.getRoot(),
 				selectedParams.assetID,
 				new Vector3(selectedParams.x, selectedParams.y, selectedParams.z),

@@ -32,14 +32,10 @@ export class SimpleScene extends BaseScene {
 		cube.position.set(5, 0, 5);
 		this.root.add(cube);
 
-		context.assetSpawner.spawnAt(this.root, "tree", new Vector3(0, 0, 0), 0);
+		context.assetSpawner.spawnLODsAt(this.root, "tree", new Vector3(0, 0, 0), 0);
 	}
 
 	public update(deltaTime: number, context: AppContext): void {
 		super.update(deltaTime, context);
-	}
-
-	public dispose(): void {
-		super.dispose();
 	}
 }

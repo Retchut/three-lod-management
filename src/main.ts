@@ -68,12 +68,21 @@ const lodManager = new LODManager(camera);
 const performanceManager = new PerformanceManager(lodManager, 60);
 const assetManager: AssetManager = new AssetManager();
 const assetSpawner: AssetSpawner = new AssetSpawner(assetManager, lodManager);
-await assetManager.loadGLTF(
+assetManager.loadGLTFLODs(
 	"tree",
-	"lod_tree/tree_decimating_modifiers_applied.glb",
 	[
-		["Tree", "Tree002", "Tree004", "Tree006"],
-		["Tree001", "Tree003", "Tree005", "Tree007"],
+		[
+			"lod_tree/lods_separated/variant0/lod0.glb",
+			"lod_tree/lods_separated/variant0/lod1.glb",
+			"lod_tree/lods_separated/variant0/lod2.glb",
+			"lod_tree/lods_separated/variant0/lod3.glb",
+		],
+		[
+			"lod_tree/lods_separated/variant1/lod0.glb",
+			"lod_tree/lods_separated/variant1/lod1.glb",
+			"lod_tree/lods_separated/variant1/lod2.glb",
+			"lod_tree/lods_separated/variant1/lod3.glb",
+		],
 	],
 	0.5,
 );

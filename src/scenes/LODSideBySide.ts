@@ -5,13 +5,14 @@ import {
 	DirectionalLight,
 	Mesh,
 	MeshBasicMaterial,
+	Object3D,
 	Vector3,
 } from "three/webgpu";
 import { BaseScene, type AppContext } from "./BaseScene";
 
-export class LODDisplayScene extends BaseScene {
+export class LODSideBySideScene extends BaseScene {
 	constructor() {
-		super("LODDisplay", new Vector3(4, 3, 4), true);
+		super("simplescene", new Vector3(0, 3, 4), true);
 	}
 
 	protected setupLighting(): void {
@@ -32,24 +33,19 @@ export class LODDisplayScene extends BaseScene {
 		cube.position.set(5, 0, 5);
 		this.root.add(cube);
 
-		for (let varIdx = 0; varIdx < 2; varIdx++) {
-			for (let lod = 0; lod < 4; lod++) {
-				context.assetSpawner.spawnSingleLOD(
-					this.root,
-					"tree",
-					new Vector3(-1 + 2 * varIdx, 0, -6 + 4 * lod),
-					lod,
-					varIdx,
-				);
-			}
-		}
+		const trees: Object3D | null = context.assetSpawner.spawnLODsAt(
+			this.root,
+			"tree",
+			new Vector3(0, 0, 0),
+			0,
+		);
+		trees?.children[0].position.set(trees?.children[0].position.x + 2, 0, 0);
+		trees?.children[1].position.set(trees?.children[1].position.x - 2, 0, 0);
+		trees?.children[2].position.set(trees?.children[2].position.x + 2, 0, 0);
+		trees?.children[3].position.set(trees?.children[3].position.x - 2, 0, 0);
 	}
 
 	public update(deltaTime: number, context: AppContext): void {
 		super.update(deltaTime, context);
-	}
-
-	public dispose(): void {
-		super.dispose();
 	}
 }
