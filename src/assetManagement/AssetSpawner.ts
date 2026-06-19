@@ -1,5 +1,5 @@
 import { Vector3, type Group, type Object3D } from "three/webgpu";
-import type { AssetManager, LoadedGLTF } from "./AssetManager";
+import type { AssetManager, LoadedAsset, LoadedGLTF } from "./AssetManager";
 import type { LODManager } from "./LODManager";
 import { BlendedLOD } from "../components/BlendedLOD";
 
@@ -7,6 +7,7 @@ export class AssetSpawner {
 	private _manager: AssetManager;
 	private _lodManager: LODManager;
 	private _BASE_LOD_DIST: number = 20;
+	private _BASE_LOD_HYSTERESIS: number = 0.1;
 
 	constructor(assetManager: AssetManager, lodManager: LODManager) {
 		this._manager = assetManager;
@@ -25,7 +26,7 @@ export class AssetSpawner {
 		);
 	}
 
-	private resolveVariantID(variants: Object3D[][], variantID: number): number | null {
+	private resolveVariantID(variants: LoadedAsset[][], variantID: number): number | null {
 		if (variants.length === 0) return null;
 
 		// variantID === -1 -> randomize variant
@@ -51,7 +52,7 @@ export class AssetSpawner {
 		return cachedData;
 	}
 
-	private variantValid(variants: Object3D[][], variantID: number): boolean {
+	private variantValid(variants: LoadedAsset[][], variantID: number): boolean {
 		// -1 means random, not a variantID
 		if (variantID < -1 || variantID >= variants.length) {
 			console.error(
@@ -73,10 +74,10 @@ export class AssetSpawner {
 	}
 
 	private resolveVariant(
-		variants: Object3D[][],
+		variants: LoadedAsset[][],
 		variantID: number,
 		assetID: string,
-	): Object3D[] | null {
+	): LoadedAsset[] | null {
 		const resolvedID = this.resolveVariantID(variants, variantID);
 		if (resolvedID == null) {
 			console.error(
@@ -88,18 +89,22 @@ export class AssetSpawner {
 	}
 
 	private spawnVariantLODs(
-		lods: Object3D[],
+		variantAsset: LoadedAsset[],
 		parent: Group,
 		position: Vector3,
 		lodQuality: number,
 	): Object3D {
 		const lodObj: BlendedLOD = new BlendedLOD();
-		lods.forEach((level: Object3D, i: number) => {
-			lodObj.addLevel(level.clone(true), i * this._BASE_LOD_DIST, 0.1);
-		});
 		lodObj.position.copy(position);
 		parent.add(lodObj);
-		this._lodManager.register(lodObj, lodQuality);
+		variantAsset.forEach((asset: LoadedAsset, lodID: number) => {
+			lodObj.initLevel(lodID * this._BASE_LOD_DIST, this._BASE_LOD_HYSTERESIS);
+			asset.onLoad((template: Object3D) => {
+				if (lodObj.parent == null) return; // in case the scene was destroyed before loading happened
+				lodObj.fillLevel(lodID, template.clone(true));
+			});
+		});
+		this._lodManager.register(lodObj, lodQuality); // this requires that the levels are initialized
 		return lodObj;
 	}
 
@@ -112,7 +117,11 @@ export class AssetSpawner {
 		const cachedData: LoadedGLTF | null = this.loadGLTFData(assetID, variantID);
 		if (cachedData == null) return null;
 
-		const variant: Object3D[] | null = this.resolveVariant(cachedData.variants, variantID, assetID);
+		const variant: LoadedAsset[] | null = this.resolveVariant(
+			cachedData.variants,
+			variantID,
+			assetID,
+		);
 		if (variant == null) return null;
 
 		return this.spawnVariantLODs(variant, parent, position, cachedData.objectQuality);
@@ -130,7 +139,7 @@ export class AssetSpawner {
 
 		let spawnedObjects: Object3D[] = [];
 		for (let i = 0; i < count; i++) {
-			const variant: Object3D[] | null = this.resolveVariant(
+			const variant: LoadedAsset[] | null = this.resolveVariant(
 				cachedData.variants,
 				variantID,
 				assetID,
