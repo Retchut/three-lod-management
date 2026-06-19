@@ -33,6 +33,7 @@ export class SimpleScene extends BaseScene {
 		this.root.add(cube);
 
 		context.assetSpawner.spawnLODsAt(this.root, "tree", new Vector3(0, 0, 0), 0);
+		context.assetSpawner.spawnLODsAt(this.root, "tree", new Vector3(-10, 0, -10), 0);
 	}
 
 	public update(deltaTime: number, context: AppContext): void {
