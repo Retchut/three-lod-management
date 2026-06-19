@@ -5,7 +5,7 @@ export class PerformanceManager {
 	private _fpsTarget: number = 60;
 	private _fpsAvg: number = 0;
 	private _timeSinceRefreshMS: number = 0;
-	private _autoQualityEnabled: boolean = true;
+	private _autoQualityEnabled: boolean = false;
 	private _BASE_REFRESH_TIME_MS = 1000; // TODO: change (and use) refresh time based on average
 	private _QUALITY_DECREMENT = 0.9;
 	private _QUALITY_INCREMENT = 1.1;
