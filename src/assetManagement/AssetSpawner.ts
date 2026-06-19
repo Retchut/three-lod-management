@@ -40,12 +40,6 @@ export class AssetSpawner {
 		return variantID;
 	}
 
-	private fetchTemplate(variant: Object3D[], lodID: number): Object3D | null {
-		if (lodID < 0 || lodID >= variant.length) return null;
-
-		return variant[lodID];
-	}
-
 	private loadCachedData(assetID: string): LoadedGLTF | null {
 		const cachedData: LoadedGLTF | null = this._manager.getAsset(assetID);
 		if (cachedData == null) return null;
@@ -93,13 +87,6 @@ export class AssetSpawner {
 		return variants[resolvedID];
 	}
 
-	private spawnObject(template: Object3D, parent: Group, position: Vector3): Object3D {
-		const instance: Object3D = template.clone(true);
-		instance.position.copy(position);
-		parent.add(instance);
-		return instance;
-	}
-
 	private spawnVariantLODs(
 		lods: Object3D[],
 		parent: Group,
@@ -114,29 +101,6 @@ export class AssetSpawner {
 		parent.add(lodObj);
 		this._lodManager.register(lodObj, lodQuality);
 		return lodObj;
-	}
-
-	public spawnSingleLOD(
-		parent: Group,
-		assetID: string,
-		position: Vector3,
-		lodID: number,
-		variantID: number = -1,
-	): Object3D | null {
-		const cachedData: LoadedGLTF | null = this.loadGLTFData(assetID, variantID);
-		if (cachedData == null) return null;
-
-		const variant: Object3D[] | null = this.resolveVariant(cachedData.variants, variantID, assetID);
-		if (variant == null) return null;
-
-		const template: Object3D | null = this.fetchTemplate(variant, lodID);
-		if (template === null) {
-			console.error(
-				`[AssetSpawner] Unable to fetch template for variant ${variantID} of assetID ${assetID}.`,
-			);
-			return null;
-		}
-		return this.spawnObject(template, parent, position);
 	}
 
 	public spawnLODsAt(
