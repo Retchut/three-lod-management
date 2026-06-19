@@ -1,4 +1,4 @@
-import { Vector3, type Group, type Object3D } from "three/webgpu";
+import { Material, Mesh, Vector3, type Group, type Object3D } from "three/webgpu";
 import type { AssetManager, LoadedAsset, LoadedGLTF } from "./AssetManager";
 import type { LODManager } from "./LODManager";
 import { BlendedLOD } from "../components/BlendedLOD";
@@ -105,7 +105,44 @@ export class AssetSpawner {
 			lodObj.initLevel(lodID * this._BASE_LOD_DIST, this._BASE_LOD_HYSTERESIS);
 			asset.onLoad((template: Object3D) => {
 				if (lodObj.parent == null) return; // in case the scene was destroyed before loading happened
-				lodObj.fillLevel(lodID, template.clone(true));
+				const instance = template.clone(true);
+				const clonedMats = new Map<Material, Material>();
+
+				// clone materials on object, hacky, but it works for now
+				instance.traverse((obj: Object3D) => {
+					if (!(obj instanceof Mesh)) return;
+
+					if (Array.isArray(obj.material)) {
+						obj.material = obj.material.map((mat: Material) => {
+							const existingMat = clonedMats.get(mat);
+							if (existingMat !== undefined) return existingMat;
+
+							const clonedMat = mat.clone();
+							if (clonedMat === undefined) return mat;
+
+							clonedMats.set(mat, clonedMat);
+							return clonedMat;
+						});
+						return;
+					}
+
+					const material = obj.material;
+					if (material === undefined) return;
+
+					const existingMat = clonedMats.get(material);
+					if (existingMat !== undefined) {
+						obj.material = existingMat;
+						return;
+					}
+
+					const clonedMat = material.clone();
+					if (clonedMat === undefined) return;
+
+					clonedMats.set(material, clonedMat);
+					obj.material = clonedMat;
+				});
+
+				lodObj.fillLevel(lodID, instance);
 			});
 		});
 		this._lodManager.register(lodObj, lodQuality); // this requires that the levels are initialized
