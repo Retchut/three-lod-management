@@ -89,6 +89,14 @@ export class LoadedAsset {
 			callback(this._loadedTemplate); // call callback immediately
 			return;
 		}
+
+		if (this.getLoadStatus() === Status.Failed) {
+			console.error(
+				`[LoadedAsset] onLoad callback assigned to failed asset with path ${this.sourcePath}. Ignoring...`,
+			);
+			return;
+		}
+
 		this._onLoadCallbacks.add(callback);
 	}
 }
