@@ -93,7 +93,11 @@ export class AssetSpawner {
 		parent: Group,
 		position: Vector3,
 		lodQuality: number,
-	): Object3D {
+	): Object3D | null {
+		if (variantAsset.length === 0) {
+			console.error(`[AssetSpawner] Unable to spawn LODs from an empty variant.`);
+			return null;
+		}
 		const lodObj: BlendedLOD = new BlendedLOD();
 		lodObj.position.copy(position);
 		parent.add(lodObj);
@@ -150,12 +154,18 @@ export class AssetSpawner {
 				);
 				continue;
 			}
-			const instance: Object3D = this.spawnVariantLODs(
+			const instance: Object3D | null = this.spawnVariantLODs(
 				variant,
 				parent,
 				this.getRandomPos(maxSpread),
 				cachedData.objectQuality,
 			);
+			if (instance === null) {
+				console.error(
+					`[AssetSpawner] Unable to spawn instance number ${i} of asset with ID ${assetID}.`,
+				);
+				continue;
+			}
 			spawnedObjects.push(instance);
 		}
 		return spawnedObjects;
