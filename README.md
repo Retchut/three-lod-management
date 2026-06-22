@@ -62,6 +62,7 @@ Texture resolution was reduced by a factor of 2 in each level with imagemagick.
 - [x] basic scene utilities and application loop
 - [x] basic asset management and spawning utilities
 - [x] flying camera controls
+  - [ ] improve camera controls
 - [x] debug/performance tracking utilities
   - [x] basic memory and framerate display
   - [x] visible polygon counts
@@ -72,8 +73,8 @@ Texture resolution was reduced by a factor of 2 in each level with imagemagick.
     - [x] selecting from loaded entities
   - [x] scene selection
   - [x] LOD quality controls
-    - [ ] allow disabling PerformanceManager adjustments, for testing
-    - [ ] select LOD transitioning method
+    - [x] allow disabling PerformanceManager adjustments, for testing
+    - [x] select LOD transitioning method
 - [x] LOD implementation
   - [x] generate LODs (not on code)
   - [x] load LODs into cache
@@ -82,6 +83,7 @@ Texture resolution was reduced by a factor of 2 in each level with imagemagick.
   - [ ] reduce LOD distance based on device specs, on first load (need to test on at least a couple of devices first though)
   - [x] visual blend between LOD versions
     - [ ] tweak blend algorithm to use an easing function for assigning the opacity to the fading in and out level
+    - [ ] decouple blending from the distance to the object, in order to avoid popping in circumstances where the distance to the object changes suddenly or new LODs become available (after assets finish loading or when the global performance changes suddenly)
   - [x] reduce LOD distance based on hit to fps
   - [ ] dynamically adjust performance based on recent modifications and recent performance history
     - [ ] increase/decrease adjustment interval
@@ -90,7 +92,8 @@ Texture resolution was reduced by a factor of 2 in each level with imagemagick.
 ### Optimizations
 
 - [ ] Use InstancedMeshes when spawning objects into the scene
-- [ ] Use the same material and swap out textures when transitioning between LODs (this might help with blending later on as well)
+
+~~- [ ] Use the same material and swap out textures when transitioning between LODs (this might help with blending later on as well)~~
 
 ### Testing
 
@@ -119,9 +122,9 @@ The following objectives are on hold until I manage to compose a more realistic 
 - [x] handle window resizing
 - [x] scene router
 - [x] deploy the app somewhere (makes testing across devices easier)
-- [ ] allow asynchronous loading of models in AssetManager (this is if we ever want to allow the user to load their own assets)
-  - [ ] store unfulfilled promises in AssetManager's cache
-  - [ ] ensure that we only check for the promise status and load models into the scene appropriately
+- [x] allow asynchronous loading of models in AssetManager (this is if we ever want to allow the user to load their own assets)
+  - [x] store unfulfilled promises in AssetManager's cache
+  - [x] ensure that we only check for the promise status and load models into the scene appropriately
 
 ### Optimizations
 
