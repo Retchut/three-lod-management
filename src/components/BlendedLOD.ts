@@ -167,22 +167,30 @@ export class BlendedLOD extends LOD {
 		// in this implementation, however we're using hysteresis as a way to indicate the window for blending between LODs
 
 		// reset LODs
-		const levels: LODLevel[] = this.levels;
-		if (levels.length === 0) return;
+		if (this.levels.length === 0) return;
 		if (this._loadedLevels.size === 0) {
-			levels.forEach((level: LODLevel) => (level.object.visible = false));
+			this.levels.forEach((level: LODLevel) => (level.object.visible = false));
 			return;
 		}
 
 		// build blend weights using the distance to the object
 		_v1.setFromMatrixPosition(camera.matrixWorld);
 		_v2.setFromMatrixPosition(this.matrixWorld);
+		const distance: number = _v1.distanceTo(_v2) / camera.zoom;
+		const distanceWeights: BlendWeights = this.computeDistanceWeights(distance);
 
+		// filter lods to whichever are currently loaded
+		const frameWeights: BlendWeights = this.getLoadedWeights(distanceWeights);
+		this.updateLODs(frameWeights);
+	}
+
+	private computeDistanceWeights(distance: number): BlendWeights {
+		const levels: LODLevel[] = this.levels;
+		if (levels.length === 0) return new Map(); // shouldn't happen, but still
 		const distanceWeights: BlendWeights = new Map();
 		distanceWeights.set(levels[levels.length - 1].object, 1); // fallback if we go past the transition between the penultimate and last LOD
-		const distance = _v1.distanceTo(_v2) / camera.zoom;
 		// skipping lod0 since its distance is at 0
-		for (let i = 1; i < this.levels.length; i++) {
+		for (let i = 1; i < levels.length; i++) {
 			const blendEnd = levels[i].distance;
 			const blendStart = blendEnd - blendEnd * levels[i].hysteresis;
 			if (distance <= blendStart) {
@@ -196,15 +204,14 @@ export class BlendedLOD extends LOD {
 				distanceWeights.set(levels[i - 1].object, 1 - blendPercent);
 				distanceWeights.set(levels[i].object, blendPercent);
 				break;
-			} else {
 			}
 		}
+		return distanceWeights;
+	}
 
-		// filter lods to whichever are currently loaded
-		const frameWeights = this.getLoadedWeights(distanceWeights);
-
-		// unhide visible LODs and reset the rest
-		for (let i = 0; i < this.levels.length; i++) {
+	private updateLODs(frameWeights: BlendWeights): void {
+		const levels: LODLevel[] = this.levels;
+		for (let i = 0; i < levels.length; i++) {
 			const level = levels[i].object;
 			const levelVisible = frameWeights.has(level);
 			level.visible = levelVisible;
