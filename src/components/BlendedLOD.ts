@@ -41,6 +41,8 @@ export class BlendedLOD extends LOD {
 	private _levelMats: Map<Object3D, LODMaterialState[]> = new Map();
 	private _loadedLevels: Set<Object3D> = new Set();
 	private _blendMode: LODBlendMode = LODBlendMode.OpaqueAlphaHashTransparentBlend;
+	// @ts-ignore
+	private _previousWeights: BlendWeights = new Map();
 
 	constructor() {
 		super();
@@ -182,6 +184,7 @@ export class BlendedLOD extends LOD {
 		// filter lods to whichever are currently loaded
 		const frameWeights: BlendWeights = this.getLoadedWeights(distanceWeights);
 		this.updateLODs(frameWeights);
+		this._previousWeights = frameWeights;
 	}
 
 	private computeDistanceWeights(distance: number): BlendWeights {
