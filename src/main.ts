@@ -106,9 +106,9 @@ function renderloop(time: number) {
 	const deltatimeSec = lastRenderTime === null ? 0 : (time - lastRenderTime) / 1000;
 	lastRenderTime = time;
 	statObjs.forEach((stats: Stats) => stats.begin());
+	controls.update(deltatimeSec);
 	lodManager.update(deltatimeSec);
 	sceneManager.update(deltatimeSec, ctx);
-	controls.update(deltatimeSec);
 	performanceManager.update(lastRenderTime === null ? null : deltatimeSec);
 	statObjs.forEach((stats: Stats) => stats.end());
 }
