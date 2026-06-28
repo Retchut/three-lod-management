@@ -194,8 +194,10 @@ export class BlendedLOD extends LOD {
 		const distance: number = _v1.distanceTo(_v2) / camera.zoom;
 		const distanceWeights: BlendWeights = this.computeDistanceWeights(distance);
 		const loadedWeights: BlendWeights = this.getLoadedWeights(distanceWeights);
+		// TODO: currently, if any weights are not loaded, we just get the closest weight, with its "opacity" set to 1
+		//			however, the loading of assets does not trigger a transition as of now, so the correct weights will just pop in
 
-		let frameWeights: BlendWeights = new Map(); // TODO: for now I'm assuming that all weights are loaded, but this will not always be the case! I'll look into fixing that later!
+		let frameWeights: BlendWeights = new Map();
 		if (this._currentTransition === null) {
 			if (this.shouldStartTransition(distance)) {
 				// this new transition's interpolated weights will effectively lag behind the current loadedWeights

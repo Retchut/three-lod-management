@@ -234,14 +234,28 @@ function getDebugStatsUI(ctx: AppContext) {
 	const camFolder = statsFolder.addFolder("Camera Stats");
 	const memoryFolder = statsFolder.addFolder("Memory Stats").close();
 	const renderFolder = statsFolder.addFolder("Render Stats").close();
+	const selectedParams = {
+		x: 0,
+		y: 0,
+		z: 0,
+		teleportCallback: () => {
+			ctx.camera.position.set(selectedParams.x, selectedParams.y, selectedParams.z);
+		},
+	};
 
 	const aggregateMetrics = <T extends object>(parent: GUI, metrics: T) => {
 		const metricKeys = Object.keys(metrics) as Array<keyof T>;
 		metricKeys.forEach((key: keyof T) => parent.add(metrics, key).disable().listen());
 	};
-	camFolder.add(ctx.camera.position, "x").decimals(3).disable().listen();
-	camFolder.add(ctx.camera.position, "y").decimals(3).disable().listen();
-	camFolder.add(ctx.camera.position, "z").decimals(3).disable().listen();
+	camFolder.add(ctx.camera.position, "x").name("Current x").decimals(3).disable().listen();
+	camFolder.add(ctx.camera.position, "y").name("Current y").decimals(3).disable().listen();
+	camFolder.add(ctx.camera.position, "z").name("Current z").decimals(3).disable().listen();
+	camFolder.add(selectedParams, "x").name("Teleport x");
+	camFolder.add(selectedParams, "y").name("Teleport y");
+	camFolder.add(selectedParams, "z").name("Teleport z");
+	camFolder
+		.add(selectedParams, "teleportCallback")
+		.name("Teleport (to blend test large pos changes)");
 	aggregateMetrics(memoryFolder, ctx.renderer.info.memory);
 	aggregateMetrics(renderFolder, ctx.renderer.info.render);
 }
