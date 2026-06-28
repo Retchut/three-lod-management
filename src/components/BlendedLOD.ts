@@ -320,9 +320,14 @@ export class BlendedLOD extends LOD {
 		if (weights.size === 0) return;
 		if (weights.size === 1) {
 			const onlyKey: Object3D = weights.keys().next().value!; // this is always guaranteed to exist, as the size is 1, hence the non-null assertion
-			this.resetMaterialState(onlyKey);
-			return;
+			if (weights.get(onlyKey) === 1) {
+				// in the case that we are blending from 0 loaded LODs to a single loaded LOD, we will interpolate from no weights to a fully opaque LOD
+				//		in that situation we only want to reset after blending is finalized, i.e. when the blendWeight for that LOD is 1
+				this.resetMaterialState(onlyKey);
+				return;
+			}
 		}
+
 		weights.forEach((blendVal: number, objKey: Object3D) =>
 			this.setMaterialsBlend(objKey, blendVal),
 		);
