@@ -48,6 +48,7 @@ export class BlendedLOD extends LOD {
 	//		no plural because I'd rather overwrite the original variable than keep it around :p
 	private _levelMats: Map<Object3D, LODMaterialState[]> = new Map();
 	private _loadedLevels: Set<Object3D> = new Set();
+	private _loadedLevelsChanged: boolean = false;
 	private _blendMode: LODBlendMode = LODBlendMode.OpaqueAlphaHashTransparentBlend;
 	private _currentTransition: LODTransition | null = null;
 	private _previousWeights: BlendWeights = new Map();
@@ -113,6 +114,7 @@ export class BlendedLOD extends LOD {
 		});
 		this._levelMats.set(levelWrapper, levelMats);
 		this._loadedLevels.add(levelWrapper);
+		this._loadedLevelsChanged = true;
 		return this;
 	}
 
@@ -194,12 +196,10 @@ export class BlendedLOD extends LOD {
 		const distance: number = _v1.distanceTo(_v2) / camera.zoom;
 		const distanceWeights: BlendWeights = this.computeDistanceWeights(distance);
 		const loadedWeights: BlendWeights = this.getLoadedWeights(distanceWeights);
-		// TODO: currently, if any weights are not loaded, we just get the closest weight, with its "opacity" set to 1
-		//			however, the loading of assets does not trigger a transition as of now, so the correct weights will just pop in
 
 		let frameWeights: BlendWeights = new Map();
 		if (this._currentTransition === null) {
-			if (this.shouldStartTransition(distance)) {
+			if (this.shouldStartTransition(distance, loadedWeights)) {
 				// this new transition's interpolated weights will effectively lag behind the current loadedWeights
 				this._currentTransition = {
 					startWeights: this._previousWeights,
@@ -212,6 +212,10 @@ export class BlendedLOD extends LOD {
 			}
 		} else {
 			// during transition we need to update the end weights if they changed because of movement
+			// TODO: what if we are transitioning and then the "correct" LOD for the distance finishes loading?
+			// 		Might get popping here if it happens near the end of the transition. The cornerest of corner cases but yeah
+			//		The solution might be to also check for shouldStartTransition here, and if a transition occured because
+			// 		a new LOD loaded, we'll re-start the transition to that LOD
 			if (!this.sameWeights(loadedWeights, this._currentTransition.endWeights)) {
 				this._currentTransition.endWeights = loadedWeights;
 			}
@@ -233,6 +237,14 @@ export class BlendedLOD extends LOD {
 		this._previousDistance = distance;
 	}
 
+	private sameWeightKeys(w1: BlendWeights, w2: BlendWeights) {
+		if (w1.size !== w2.size) return false;
+		for (const key of w1.keys()) {
+			if (!w2.has(key)) return false;
+		}
+		return true;
+	}
+
 	private sameWeights(w1: BlendWeights, w2: BlendWeights) {
 		if (w1.size !== w2.size) return false;
 		for (const key of w1.keys()) {
@@ -241,8 +253,13 @@ export class BlendedLOD extends LOD {
 		return true;
 	}
 
-	private shouldStartTransition(currentDistance: number): boolean {
-		return Math.abs(currentDistance - this._previousDistance) > this._TRANSITION_DISTANCE_THRESHOLD;
+	private shouldStartTransition(currentDistance: number, loadedWeights: BlendWeights): boolean {
+		const suddenDistanceChange =
+			Math.abs(currentDistance - this._previousDistance) > this._TRANSITION_DISTANCE_THRESHOLD;
+		const loadedLODsTriggerTransition =
+			this._loadedLevelsChanged && !this.sameWeightKeys(loadedWeights, this._previousWeights);
+		this._loadedLevelsChanged = false;
+		return suddenDistanceChange || loadedLODsTriggerTransition;
 	}
 
 	private shouldEndTransition(transition: LODTransition): boolean {
@@ -250,6 +267,8 @@ export class BlendedLOD extends LOD {
 	}
 
 	private getInterpolatedWeights(transition: LODTransition): BlendWeights {
+		// TODO: this currently perserves weights that have an interpolated "opacity" value of 0. These will be rendered despite being fully transparent,
+		// 		for at least one frame, but it is corrected on the next frame. It's probably best to just remove those keys from the weights map
 		const interpolatedWeights: BlendWeights = new Map();
 		const referencedLODs = [...transition.startWeights.keys(), ...transition.endWeights.keys()];
 		const normalizedTimer = transition.timer / this._TRANSITION_DURATION_SECS;
