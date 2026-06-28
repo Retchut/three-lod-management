@@ -259,7 +259,11 @@ export class BlendedLOD extends LOD {
 		const loadedLODsTriggerTransition =
 			this._loadedLevelsChanged && !this.sameWeightKeys(loadedWeights, this._previousWeights);
 		this._loadedLevelsChanged = false;
-		return suddenDistanceChange || loadedLODsTriggerTransition;
+		// I need to do this in scenarios where the same lod is preserved throughout very large distance changes because
+		//		a) some LODs haven't loaded, we're using another loaded LOD as a fallback, and the large distance change did not change the fallback
+		//		b) within the same distance range for a single LOD, we can perform a large distance change. While it would be invisible, we don't want to start a transition
+		const newWeightsDiffer = !this.sameWeights(loadedWeights, this._previousWeights);
+		return newWeightsDiffer && (suddenDistanceChange || loadedLODsTriggerTransition);
 	}
 
 	private shouldEndTransition(transition: LODTransition): boolean {
