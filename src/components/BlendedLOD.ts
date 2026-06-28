@@ -23,6 +23,12 @@ type BlendProps = {
 	alphaHash: boolean;
 };
 
+type LODTransition = {
+	startWeights: BlendWeights;
+	endWeights: BlendWeights;
+	timer: number;
+};
+
 type LODMaterialState = {
 	mat: Material;
 	original: BlendProps;
@@ -36,16 +42,20 @@ type LODLevel = {
 };
 
 export class BlendedLOD extends LOD {
+	private _TRANSITION_DURATION_SECS: number = 0.5;
+	private _TRANSITION_DISTANCE_THRESHOLD: number = 0.1;
 	// already private in LOD.js, but it is only used for the update logic
 	//		no plural because I'd rather overwrite the original variable than keep it around :p
 	private _levelMats: Map<Object3D, LODMaterialState[]> = new Map();
 	private _loadedLevels: Set<Object3D> = new Set();
 	private _blendMode: LODBlendMode = LODBlendMode.OpaqueAlphaHashTransparentBlend;
-	// @ts-ignore
+	private _currentTransition: LODTransition | null = null;
 	private _previousWeights: BlendWeights = new Map();
+	private _previousDistance: number = 0;
 
 	constructor() {
 		super();
+		this.autoUpdate = false;
 	}
 
 	public getBlendMode() {
@@ -164,7 +174,10 @@ export class BlendedLOD extends LOD {
 		return loadedWeights;
 	}
 
-	public update(camera: PerspectiveCamera | OrthographicCamera) {
+	// this only exists to allow me to derive from LOD.js now.....
+	public update(_camera: PerspectiveCamera | OrthographicCamera): void {}
+
+	public updateBlended(camera: PerspectiveCamera | OrthographicCamera, deltatimeSec: number): void {
 		// this is very close to the original LOD.update implementation, just tweaked slightly to add the blending: https://github.com/mrdoob/three.js/blob/master/src/objects/LOD.js
 		// in this implementation, however we're using hysteresis as a way to indicate the window for blending between LODs
 
@@ -180,11 +193,70 @@ export class BlendedLOD extends LOD {
 		_v2.setFromMatrixPosition(this.matrixWorld);
 		const distance: number = _v1.distanceTo(_v2) / camera.zoom;
 		const distanceWeights: BlendWeights = this.computeDistanceWeights(distance);
+		const loadedWeights: BlendWeights = this.getLoadedWeights(distanceWeights);
+
+		let frameWeights: BlendWeights = new Map(); // TODO: for now I'm assuming that all weights are loaded, but this will not always be the case! I'll look into fixing that later!
+		if (this._currentTransition === null) {
+			if (this.shouldStartTransition(distance)) {
+				// this new transition's interpolated weights will effectively lag behind the current loadedWeights
+				this._currentTransition = {
+					startWeights: this._previousWeights,
+					endWeights: loadedWeights,
+					timer: 0,
+				};
+				frameWeights = this.getInterpolatedWeights(this._currentTransition);
+			} else {
+				frameWeights = loadedWeights;
+			}
+		} else {
+			// during transition we need to update the end weights if they changed because of movement
+			if (!this.sameWeights(loadedWeights, this._currentTransition.endWeights)) {
+				this._currentTransition.endWeights = loadedWeights;
+			}
+
+			// update transition timer
+			const newTimer = Math.min(
+				this._TRANSITION_DURATION_SECS,
+				this._currentTransition.timer + deltatimeSec,
+			);
+			this._currentTransition.timer = newTimer;
+
+			frameWeights = this.getInterpolatedWeights(this._currentTransition);
+			if (this.shouldEndTransition(this._currentTransition)) this._currentTransition = null;
+		}
 
 		// filter lods to whichever are currently loaded
-		const frameWeights: BlendWeights = this.getLoadedWeights(distanceWeights);
 		this.updateLODs(frameWeights);
 		this._previousWeights = frameWeights;
+		this._previousDistance = distance;
+	}
+
+	private sameWeights(w1: BlendWeights, w2: BlendWeights) {
+		if (w1.size !== w2.size) return false;
+		for (const key of w1.keys()) {
+			if (w1.get(key) !== w2.get(key)) return false;
+		}
+		return true;
+	}
+
+	private shouldStartTransition(currentDistance: number): boolean {
+		return Math.abs(currentDistance - this._previousDistance) > this._TRANSITION_DISTANCE_THRESHOLD;
+	}
+
+	private shouldEndTransition(transition: LODTransition): boolean {
+		return transition.timer >= this._TRANSITION_DURATION_SECS;
+	}
+
+	private getInterpolatedWeights(transition: LODTransition): BlendWeights {
+		const interpolatedWeights: BlendWeights = new Map();
+		const referencedLODs = [...transition.startWeights.keys(), ...transition.endWeights.keys()];
+		const normalizedTimer = transition.timer / this._TRANSITION_DURATION_SECS;
+		referencedLODs.forEach((lodKey: Object3D) => {
+			const startVal = transition.startWeights.get(lodKey) ?? 0;
+			const endVal = transition.endWeights.get(lodKey) ?? 0;
+			interpolatedWeights.set(lodKey, startVal + (endVal - startVal) * normalizedTimer);
+		});
+		return interpolatedWeights;
 	}
 
 	private computeDistanceWeights(distance: number): BlendWeights {

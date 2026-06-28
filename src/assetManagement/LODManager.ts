@@ -62,7 +62,7 @@ export class LODManager {
 
 	private setLODDistances(lod: LOD, newDistances: number[]) {
 		lod.levels.forEach((l, i) => (l.distance = newDistances[i]));
-		lod.update(this._camera);
+		this.updateLOD(0, lod);
 	}
 
 	public register(lod: LOD, lodQualityScale: number) {
@@ -82,5 +82,14 @@ export class LODManager {
 				return;
 			}
 		}
+	}
+
+	public update(deltatimeSec: number) {
+		this._trackedLODs.forEach((tracked: TrackedLOD) => this.updateLOD(deltatimeSec, tracked.lod));
+	}
+
+	private updateLOD(deltatimeSec: number, lod: LOD) {
+		if (lod instanceof BlendedLOD) lod.updateBlended(this._camera, deltatimeSec);
+		else if (!lod.autoUpdate) lod.update(this._camera);
 	}
 }
