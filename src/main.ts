@@ -3,7 +3,7 @@ import Stats from "stats.js";
 import { PerspectiveCamera, WebGPURenderer } from "three/webgpu";
 import { FlyControls } from "three/examples/jsm/Addons.js";
 import type { AppContext } from "./scenes/BaseScene";
-import { SimpleScene } from "./scenes/Simple";
+import { DemoScene } from "./scenes/Demo";
 import { AssetManager } from "./assetManagement/AssetManager";
 import { AssetSpawner } from "./assetManagement/AssetSpawner";
 import { initUI } from "./ui/uiPanels";
@@ -191,7 +191,7 @@ const ctx: AppContext = {
 	performanceManager: performanceManager,
 };
 const sceneManager = new SceneManager();
-await sceneManager.loadScene(new SimpleScene(), ctx);
+await sceneManager.loadScene(new DemoScene(), ctx);
 initUI(ctx, sceneManager);
 hideLoadScreen();
 

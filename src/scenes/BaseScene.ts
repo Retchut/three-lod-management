@@ -77,7 +77,7 @@ export abstract class BaseScene {
 	private setupSceneHelpers(): void {
 		const axes: AxesHelper = new AxesHelper(5);
 		const grid = new GridHelper(100, 50);
-		grid.position.set(0, 0.5, 0);
+		grid.position.set(0, 0.01, 0);
 		this.debugRoot.add(axes);
 		this.debugRoot.add(grid);
 	}

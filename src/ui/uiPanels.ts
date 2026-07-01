@@ -4,7 +4,7 @@ import { AssetManager } from "../assetManagement/AssetManager";
 import type { AppContext, BaseScene } from "../scenes/BaseScene";
 import type { SceneManager } from "../scenes/SceneManager";
 import { SimpleScene } from "../scenes/Simple";
-import { RandomizedScene } from "../scenes/Randomized";
+import { DemoScene } from "../scenes/Demo";
 import { LODSideBySideScene } from "../scenes/LODSideBySide";
 import { LODBlendMode } from "../assetManagement/LODManager";
 
@@ -35,7 +35,7 @@ function getSceneUI(ctx: AppContext, sceneManager: SceneManager) {
 
 	// Note: Scene class names come in the format `<type>Scene`
 	const sceneDropdown = sceneControls
-		.add(selectedParams, "sceneType", ["Simple", "LODSideBySide", "Randomized"])
+		.add(selectedParams, "sceneType", ["Simple", "LODSideBySide", "Demo"])
 		.name("Scene to load")
 		.onChange(checkLoadBtnEnable);
 	const sceneLoadBtn = sceneControls
@@ -51,8 +51,8 @@ function getSceneUI(ctx: AppContext, sceneManager: SceneManager) {
 				case "LODSideBySide":
 					newScene = new LODSideBySideScene();
 					break;
-				case "Randomized":
-					newScene = new RandomizedScene();
+				case "Demo":
+					newScene = new DemoScene();
 					break;
 				default:
 					return;
