@@ -159,6 +159,12 @@ assetManager.loadGLTFLODs(
 	"rocks",
 	[
 		[
+			"rocks-variants/variant0/lod0.glb",
+			"rocks-variants/variant0/lod1.glb",
+			"rocks-variants/variant0/lod2.glb",
+			emptyLODPath,
+		],
+		[
 			"rocks-variants/variant1/lod0.glb",
 			"rocks-variants/variant1/lod1.glb",
 			"rocks-variants/variant1/lod2.glb",
@@ -168,12 +174,6 @@ assetManager.loadGLTFLODs(
 			"rocks-variants/variant2/lod0.glb",
 			"rocks-variants/variant2/lod1.glb",
 			"rocks-variants/variant2/lod2.glb",
-			emptyLODPath,
-		],
-		[
-			"rocks-variants/variant3/lod0.glb",
-			"rocks-variants/variant3/lod1.glb",
-			"rocks-variants/variant3/lod2.glb",
 			emptyLODPath,
 		],
 	],
