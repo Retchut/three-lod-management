@@ -2,13 +2,16 @@ import {
 	AxesHelper,
 	Camera,
 	Controls,
+	DoubleSide,
 	GridHelper,
 	Group,
 	Light,
 	LOD,
 	Material,
 	Mesh,
+	MeshStandardMaterial,
 	Object3D,
+	PlaneGeometry,
 	Scene,
 	Texture,
 	Vector3,
@@ -77,7 +80,7 @@ export abstract class BaseScene {
 	private setupSceneHelpers(): void {
 		const axes: AxesHelper = new AxesHelper(5);
 		const grid = new GridHelper(100, 50);
-		grid.position.set(0, 0.5, 0);
+		grid.position.set(0, 0.01, 0);
 		this.debugRoot.add(axes);
 		this.debugRoot.add(grid);
 	}
@@ -87,6 +90,16 @@ export abstract class BaseScene {
 		context.camera.position.copy(camPos);
 		// context.camControls.target.set(0, 0, 0); // used by the OrbitControls, keeping it commented in case I decide to add multiple control types
 		context.camControls.update(0);
+	}
+
+	protected spawnPlane(width: number, depth: number, color: number, x = 0, z = 0, y = 0): Mesh {
+		const geometry = new PlaneGeometry(width, depth);
+		const material = new MeshStandardMaterial({ color, side: DoubleSide });
+		const plane = new Mesh(geometry, material);
+		plane.position.set(x, y, z);
+		plane.rotateX(Math.PI / 2);
+		this.root.add(plane);
+		return plane;
 	}
 
 	public async load(context: AppContext): Promise<void> {

@@ -3,7 +3,7 @@ import Stats from "stats.js";
 import { PerspectiveCamera, WebGPURenderer } from "three/webgpu";
 import { FlyControls } from "three/examples/jsm/Addons.js";
 import type { AppContext } from "./scenes/BaseScene";
-import { SimpleScene } from "./scenes/Simple";
+import { DemoScene } from "./scenes/Demo";
 import { AssetManager } from "./assetManagement/AssetManager";
 import { AssetSpawner } from "./assetManagement/AssetSpawner";
 import { initUI } from "./ui/uiPanels";
@@ -68,6 +68,9 @@ const lodManager = new LODManager(camera);
 const performanceManager = new PerformanceManager(lodManager, 60);
 const assetManager: AssetManager = new AssetManager();
 const assetSpawner: AssetSpawner = new AssetSpawner(assetManager, lodManager);
+// ----- asset loading -----
+// TODO: move this elsewhere later, and maybe I should consider cleaning up the lod array path creation, as we're following a pattern for storing these lods right now
+const emptyLODPath: string = "empty.glb";
 assetManager.loadGLTFLODs(
 	"tree",
 	[
@@ -86,6 +89,97 @@ assetManager.loadGLTFLODs(
 	],
 	0.5,
 );
+assetManager.loadGLTFLODs(
+	"building-graffiti",
+	[
+		[
+			"graffity-building/lod0.glb",
+			"graffity-building/lod1.glb",
+			"graffity-building/lod2.glb",
+			"graffity-building/lod3.glb",
+		],
+	],
+	3.0,
+);
+assetManager.loadGLTFLODs(
+	"building-realistic-1",
+	[
+		[
+			"realistic-building/lod0.glb",
+			"realistic-building/lod1.glb",
+			"realistic-building/lod2.glb",
+			"realistic-building/lod3.glb",
+		],
+	],
+	2.5,
+);
+assetManager.loadGLTFLODs(
+	"building-realistic-2",
+	[
+		[
+			"realistic-building-pbr/lod0.glb",
+			"realistic-building-pbr/lod1.glb",
+			"realistic-building-pbr/lod2.glb",
+			"realistic-building-pbr/lod3.glb",
+		],
+	],
+	2.0,
+);
+
+assetManager.loadGLTFLODs(
+	"streetlamp",
+	[
+		[
+			"moscow-lamp-post/lod0.glb",
+			"moscow-lamp-post/lod1.glb",
+			"moscow-lamp-post/lod2.glb",
+			"moscow-lamp-post/lod3.glb",
+			emptyLODPath,
+		],
+	],
+	1.5,
+);
+assetManager.loadGLTFLODs(
+	"stone-path",
+	[
+		[
+			"slate-stepping-stones/lod0.glb",
+			"slate-stepping-stones/lod1.glb",
+			"slate-stepping-stones/lod2.glb",
+		],
+	],
+	1.0,
+);
+assetManager.loadGLTFLODs(
+	"grass",
+	[["grass/lod0.glb", "grass/lod1.glb", "grass/lod2.glb", emptyLODPath]],
+	0.5,
+);
+assetManager.loadGLTFLODs(
+	"rocks",
+	[
+		[
+			"rocks-variants/variant0/lod0.glb",
+			"rocks-variants/variant0/lod1.glb",
+			"rocks-variants/variant0/lod2.glb",
+			emptyLODPath,
+		],
+		[
+			"rocks-variants/variant1/lod0.glb",
+			"rocks-variants/variant1/lod1.glb",
+			"rocks-variants/variant1/lod2.glb",
+			emptyLODPath,
+		],
+		[
+			"rocks-variants/variant2/lod0.glb",
+			"rocks-variants/variant2/lod1.glb",
+			"rocks-variants/variant2/lod2.glb",
+			emptyLODPath,
+		],
+	],
+	0.75,
+);
+// -------------------------
 
 const ctx: AppContext = {
 	renderer: renderer,
@@ -97,7 +191,7 @@ const ctx: AppContext = {
 	performanceManager: performanceManager,
 };
 const sceneManager = new SceneManager();
-await sceneManager.loadScene(new SimpleScene(), ctx);
+await sceneManager.loadScene(new DemoScene(), ctx);
 initUI(ctx, sceneManager);
 hideLoadScreen();
 
@@ -106,8 +200,9 @@ function renderloop(time: number) {
 	const deltatimeSec = lastRenderTime === null ? 0 : (time - lastRenderTime) / 1000;
 	lastRenderTime = time;
 	statObjs.forEach((stats: Stats) => stats.begin());
-	sceneManager.update(deltatimeSec, ctx);
 	controls.update(deltatimeSec);
+	lodManager.update(deltatimeSec);
+	sceneManager.update(deltatimeSec, ctx);
 	performanceManager.update(lastRenderTime === null ? null : deltatimeSec);
 	statObjs.forEach((stats: Stats) => stats.end());
 }

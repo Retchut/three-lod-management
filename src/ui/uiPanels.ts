@@ -4,7 +4,7 @@ import { AssetManager } from "../assetManagement/AssetManager";
 import type { AppContext, BaseScene } from "../scenes/BaseScene";
 import type { SceneManager } from "../scenes/SceneManager";
 import { SimpleScene } from "../scenes/Simple";
-import { RandomizedScene } from "../scenes/Randomized";
+import { DemoScene } from "../scenes/Demo";
 import { LODSideBySideScene } from "../scenes/LODSideBySide";
 import { LODBlendMode } from "../assetManagement/LODManager";
 
@@ -35,7 +35,7 @@ function getSceneUI(ctx: AppContext, sceneManager: SceneManager) {
 
 	// Note: Scene class names come in the format `<type>Scene`
 	const sceneDropdown = sceneControls
-		.add(selectedParams, "sceneType", ["Simple", "LODSideBySide", "Randomized"])
+		.add(selectedParams, "sceneType", ["Simple", "LODSideBySide", "Demo"])
 		.name("Scene to load")
 		.onChange(checkLoadBtnEnable);
 	const sceneLoadBtn = sceneControls
@@ -51,8 +51,8 @@ function getSceneUI(ctx: AppContext, sceneManager: SceneManager) {
 				case "LODSideBySide":
 					newScene = new LODSideBySideScene();
 					break;
-				case "Randomized":
-					newScene = new RandomizedScene();
+				case "Demo":
+					newScene = new DemoScene();
 					break;
 				default:
 					return;
@@ -234,14 +234,28 @@ function getDebugStatsUI(ctx: AppContext) {
 	const camFolder = statsFolder.addFolder("Camera Stats");
 	const memoryFolder = statsFolder.addFolder("Memory Stats").close();
 	const renderFolder = statsFolder.addFolder("Render Stats").close();
+	const selectedParams = {
+		x: 0,
+		y: 0,
+		z: 0,
+		teleportCallback: () => {
+			ctx.camera.position.set(selectedParams.x, selectedParams.y, selectedParams.z);
+		},
+	};
 
 	const aggregateMetrics = <T extends object>(parent: GUI, metrics: T) => {
 		const metricKeys = Object.keys(metrics) as Array<keyof T>;
 		metricKeys.forEach((key: keyof T) => parent.add(metrics, key).disable().listen());
 	};
-	camFolder.add(ctx.camera.position, "x").decimals(3).disable().listen();
-	camFolder.add(ctx.camera.position, "y").decimals(3).disable().listen();
-	camFolder.add(ctx.camera.position, "z").decimals(3).disable().listen();
+	camFolder.add(ctx.camera.position, "x").name("Current x").decimals(3).disable().listen();
+	camFolder.add(ctx.camera.position, "y").name("Current y").decimals(3).disable().listen();
+	camFolder.add(ctx.camera.position, "z").name("Current z").decimals(3).disable().listen();
+	camFolder.add(selectedParams, "x").name("Teleport x");
+	camFolder.add(selectedParams, "y").name("Teleport y");
+	camFolder.add(selectedParams, "z").name("Teleport z");
+	camFolder
+		.add(selectedParams, "teleportCallback")
+		.name("Teleport (to blend test large pos changes)");
 	aggregateMetrics(memoryFolder, ctx.renderer.info.memory);
 	aggregateMetrics(renderFolder, ctx.renderer.info.render);
 }

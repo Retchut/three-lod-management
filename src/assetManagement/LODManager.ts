@@ -33,7 +33,7 @@ export class LODManager {
 		if (this._blendMode === newMode) return;
 
 		this._blendMode = newMode;
-		this._trackedLODs.forEach((tracked: TrackedLOD) => this.updateLODBlendMode(tracked.lod));
+		this._trackedLODs.forEach((tracked: TrackedLOD) => this.setLODBlendMode(tracked.lod));
 	}
 
 	public getQuality() {
@@ -45,28 +45,24 @@ export class LODManager {
 			Math.max(new_globalQuality, this._LOD_QUALITY_MIN),
 			this._LOD_QUALITY_MAX,
 		);
-		this.updateAll();
+		this._trackedLODs.forEach((trackedLOD: TrackedLOD) => this.setLODQuality(trackedLOD));
 	}
 
-	private updateAll() {
-		this._trackedLODs.forEach((tracked: TrackedLOD) => this.updateSingle(tracked));
-	}
-
-	private updateSingle(tracked: TrackedLOD) {
-		const newDistances: number[] = tracked.baseDistances.map(
-			(d) => d * tracked.qualityScale * this._globalQuality,
+	private setLODQuality(trackedLOD: TrackedLOD) {
+		const newDistances: number[] = trackedLOD.baseDistances.map(
+			(d) => d * trackedLOD.qualityScale * this._globalQuality,
 		);
-		this.updateLOD(tracked.lod, newDistances);
-		this.updateLODBlendMode(tracked.lod);
+		this.setLODDistances(trackedLOD.lod, newDistances);
+		this.setLODBlendMode(trackedLOD.lod);
 	}
 
-	private updateLODBlendMode(trackedLOD: LOD) {
-		if (trackedLOD instanceof BlendedLOD) trackedLOD.setBlendMode(this._blendMode);
+	private setLODBlendMode(lod: LOD) {
+		if (lod instanceof BlendedLOD) lod.setBlendMode(this._blendMode);
 	}
 
-	private updateLOD(target: LOD, newDistances: number[]) {
-		target.levels.forEach((l, i) => (l.distance = newDistances[i]));
-		target.update(this._camera);
+	private setLODDistances(lod: LOD, newDistances: number[]) {
+		lod.levels.forEach((l, i) => (l.distance = newDistances[i]));
+		this.updateLOD(0, lod);
 	}
 
 	public register(lod: LOD, lodQualityScale: number) {
@@ -76,7 +72,7 @@ export class LODManager {
 			qualityScale: lodQualityScale,
 		};
 		this._trackedLODs.add(newTracked);
-		this.updateSingle(newTracked);
+		this.setLODQuality(newTracked);
 	}
 
 	public unregister(lod: LOD) {
@@ -86,5 +82,14 @@ export class LODManager {
 				return;
 			}
 		}
+	}
+
+	public update(deltatimeSec: number) {
+		this._trackedLODs.forEach((tracked: TrackedLOD) => this.updateLOD(deltatimeSec, tracked.lod));
+	}
+
+	private updateLOD(deltatimeSec: number, lod: LOD) {
+		if (lod instanceof BlendedLOD) lod.updateBlended(this._camera, deltatimeSec);
+		else if (!lod.autoUpdate) lod.update(this._camera);
 	}
 }
